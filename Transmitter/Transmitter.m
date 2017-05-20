@@ -6,6 +6,7 @@ function [Signal_Tx,Fs,OFDM_config,Testing_data,IF_chain_config ] = Transmitter(
 %TRANSMITTER Summary of this function goes here
 %   Detailed explanation goes here
 
+%%% Dummy # 3: TEST the BANCH BROWSER
 
 %% Config
 %test_synch_channel_flag=0; % test only synchronization, impulse response and channel estimation
