@@ -1,0 +1,21 @@
+all the following with:
+N_symbols=8000
+
+1)OFDM Link function:
+    a)  Calibration& 4-QAM& SNR=400dB: EVM~54dB
+
+ 2)on calibration mode:
+
+    %%% 1) on EbNo mode: EbNo~EVM-log10(log2(M)) (e.g; M=4&EbNo=30, EVM=-33 on every signal length)
+    %%% 2) on EsNo_data mode: EsNo~EVM(e.g; EsNo=30, EVM=-30 on every constellation and every signal length)
+
+ 3)on calibration mode: BER curve is well aligned with theory
+
+4) Operational Mode: actual BER curve is aligned with saved curves
+
+5) HW: EVM reached is above 45dB (even 57dB is reachable!). check the Frec and Fs to avoid aliasing and also the Average power at AFE time domin:
+Rx and Tx should have approximately same height. if not, change A/D or D/A ports, or reset them (maybe RF cable)
+
+
+
+

@@ -1,0 +1,5 @@
+1) ML eqaulizer performs better than LS equalizer in terms of noise enhancement (flat channel), namely on high SNR
+on extermely high SNR it performs less good: EVM~55dB instead of ~75dB, but who cares...
+2) on low SNR, coarse frequency synch with preamble_synch harms more than it contributes. netter neutralize it. Not true once extended preamble_synch to 8 symbol lengths
+3) on moderate multupath (e.g; Delay_resp_vec=[0 1]; Amp_resp_vec=[1 0.5];) coarse frequency synch harms more than contributes
+Average power curve: preamble part "looks better" if there is large number of preamble symbols (4 CE and 8 synch)

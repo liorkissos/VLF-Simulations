@@ -1,0 +1,50 @@
+1) Channel estimation based on pilots: (see my note based on lecture 2&7&8 )
+- create a preamble composed merely of pilots: more than 5, less than 256
+- channel estimation based on interpolation of division of Tx preamble by Rx preamble (composed of pilots only as mentioned before)
+- more relative power than 0db (relative versus data sc's)
+- different phases: to decrease PAPR. in the case pilots are dominant in 
+terms of power, we need them to get summed de-phased
+
+2) SNR estimation via preamble metric (Yuval Ben Hur)
+
+3) Coarse time synch with clean preamble produced by receiver: correlation
+between that and the received preamble sequence.  better on noisy channel.
+the other method, of autocorrlating the Rx sequence with itself, is better 
+on dominance of multipath over noise
+
+4) channel estimation at every block
+
+5) LMS equalizer: BFB, p.719-720
+
+
+7) Vocoder: LPC10. Fs=8Ksps, quaantization: 8 logarithmic or 12 linear
+
+8) improevement of clock synch with the aid of preamble_CE
+
+
+9) N_FFT=64; increase preamble gain enhacement above 4dB. it is possible
+10) Add single carrier narrow band preamble testifying of the gain enhancement (linear terms: more accurate)
+11) add Signal field preamble carrying information about the rest of the packet (BFB, p.715-716)
+
+
+
+13) Equalizer: improve according to article: WLS_OFDM_channel_equalization (to be found under aricles folder) 
+
+14) speech compression using DCT:
+https://www.mathworks.com/help/signal/ug/dct-for-speech-signal-compression.html
+
+15) Transition to 1024 carriers
+
+16)working on real-timeness of OFDM_Link_function in HW mode:
+vocoder,
+sampling frequency of voice
+quantization of voice
+coding overhead
+modulation
+BW of Signal
+Rx/Tx filters designs or convolution (maybe save ans load)
+CP
+
+17) Phase estimation: use LS method making use of pilots 
+
+18) pre emphasis of chirp using differentiator
