@@ -27,8 +27,8 @@ N_bits_Threshold=5e6;
 
 MIMO_depth=3;
 
-Configuration='Operational' % OFDM, real channel, non identical symbols, IF signal, Minn& Zeng time synchronization
-%Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
+%Configuration='Operational' % OFDM, real channel, non identical symbols, IF signal, Minn& Zeng time synchronization
+Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
 
 N_symbols=10000; % number of symbols in the Frame
 
@@ -369,6 +369,11 @@ end
 
 if strcmp(Configuration,'Calibration') && F_chip~=5e3
     error('On calibration mode F_chip must remain 5kHz, otherwise the transmitter might change it without control. the transmiter does it in order to keep an integer number of delay and other things')
+end
+
+if strcmp(Configuration,'Calibration') && MIMO_depth~=1
+    error('Calibration can only be done in a SISO link, by definition')
+    
 end
 
 %% Preparations

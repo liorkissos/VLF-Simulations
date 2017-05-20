@@ -28,14 +28,14 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     
     MIMO_depth=1;
     
-    Link_Type='HW'
-    %Link_Type='SW'
+    %Link_Type='HW'
+    Link_Type='SW'
     
-    Configuration='Operational' % OFDM, real channel, non identical symbols, IF signal, Minn& Zeng time synchronization
-    %Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
+    %Configuration='Operational' % OFDM, real channel, non identical symbols, IF signal, Minn& Zeng time synchronization
+    Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
     %Configuration='Impulse Response'; % signal containing impulses at each
     
-    N_symbols=4000; % number of QAM symbols in the Frame
+    N_symbols=40000; % number of QAM symbols in the Frame
     % N_symbols=45590; % number of QAM symbols in the Frame
     
     
