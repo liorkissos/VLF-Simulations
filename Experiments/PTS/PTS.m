@@ -95,48 +95,82 @@ close all
 %%% Final
 %%%%%%%%%%%%%%%%%%%5
 
+%% User defined parameters
 
-M=4;
-N=2^6;
+%%% Standard
+N=2^4; % length of symbol
+Modulation=4; % modulation index
 
-W=4;
+hMod_data = comm.RectangularQAMModulator('ModulationOrder',Modulation,'NormalizationMethod','Average Power','BitInput',0);
+hDemod = comm.RectangularQAMDemodulator('ModulationOrder',Modulation,'NormalizationMethod','Average Power','BitOutput',0);
 
-Modulation=4;
+%%% PTS
+M=4; % number of blocks the symbol is divided into
+W=4; % number of possible phase
 
 
 %% Data Generation
 
-X_orig=randi(Modulation,N,1);
+data_Tx=randi(Modulation,N,1)-1;
+
+X_orig = step(hMod_data, data_Tx); % QAM modulation
 
 X_orig_shift=ifftshift(X_orig);
 
 
-%% Phase optimization
+%% Tx Symbol splitting
 
-phase=randi(W,M)-1;
-b=exp(j*2*pi*phase/W);
-
-% b=ones(M,1);
-% 
-% for kk=2:M
-%     
-%     for ll=0:W-1
-%         
-%     end
-%     
-% end
-
-%% Tx
-
+%%% splitting in a "polyphase style"
 
 for kk=1:M
     ind_vec=kk:M:N;
-    X_subs=X_orig_shift(ind_vec);
-    X_orig_mat(:,kk)=b(kk)*upsample(X_subs,M,kk-1);
+    X_subs_mat(:,kk)=upsample(X_orig_shift(ind_vec),M,kk-1);
     
 end
 
-X_Tx_mat=X_orig_mat;
+%% Phase optimization: see PAPR Reduction of OFDM Signals Using a Reduced Complexity PTS Technique, Hee Han& Hong Lee
+
+b=ones(M,1); % see page 2 bottom left
+
+for     kk=2:M
+    
+    X_Tx_mat=X_subs_mat*diag(b); % like multiplying every column by the same integer
+    x_Tx_mat=ifft(X_Tx_mat);
+    x_Tx=sum(x_Tx_mat,2);
+    
+    P_max=max(abs(x_Tx));
+    P_avg=mean(abs(x_Tx));
+    PAPR_ref=10*log10(P_max/P_avg)
+    PAPR_min=PAPR_ref;
+    
+    ll_opt=0;
+    for ll=0:W-1
+        
+        b(kk)=exp(j*2*pi*ll/W);
+        X_Tx_mat=X_subs_mat*diag(b);
+        x_Tx_mat=ifft(X_Tx_mat);
+        x_Tx=sum(x_Tx_mat,2);
+        
+        P_max=max(abs(x_Tx));
+        P_avg=mean(abs(x_Tx));
+        PAPR=10*log10(P_max/P_avg);
+        
+        if PAPR<PAPR_min
+            PAPR_min=PAPR;
+            ll_opt=ll;
+        end
+        
+    end
+    
+    b(kk)=exp(j*2*pi*ll_opt/W);
+    
+    kk
+    PAPR_min
+    
+end
+
+X_Tx_mat=X_subs_mat*diag(b);
+
 x_Tx_mat=ifft(X_Tx_mat);
 
 x_Tx=sum(x_Tx_mat,2);
@@ -168,11 +202,16 @@ X_Rx=sum(X_Rx_mat,2);
 
 X_Rx=fftshift(X_Rx);
 
-error=max(abs(X_orig-X_Rx))
+data_Rx=step(hDemod,X_Rx);
+
+
+%% Analysis
+
+error=max(abs(data_Tx-data_Rx))
 figure
 set(gcf,'windowstyle','docked')
 shg
-stem(real(X_orig));hold on;stem(real(X_Rx))
+stem(data_Tx);hold on;stem(data_Rx)
 title(['Error= ',num2str(error),''])
 legend('original','reconstructed')
 grid minor

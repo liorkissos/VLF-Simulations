@@ -615,7 +615,7 @@ for mm=1:MIMO_depth
     
     %% OFDM: Frequency domain %%%
     
-    %% 10) guard bands removal
+    %% 10) Guard Bands removal
     
     OFDM_matrix_Rx_f=OFDM_matrix_Rx_f(Nguard_band_left+1:end-Nguard_band_right,:); % removing only guard bands. not pilots
     
@@ -747,7 +747,6 @@ for mm=1:MIMO_depth
        H_est_MIMO(:,mm)=H_est;
     end
     
-
 end % MIMO loop
 
 %% MIMO: Maximum Ratio Combination
@@ -936,7 +935,6 @@ if Frequency_sync_flag && test_synch_channel_flag % Prasad p.131. equation 5.23:
     
     
 end
-
 
 %% 17) QAM symbols Matrix to QAM symbols Vector
 
