@@ -16,7 +16,7 @@ hMod_data = comm.RectangularQAMModulator('ModulationOrder',Modulation,'Normaliza
 hDemod = comm.RectangularQAMDemodulator('ModulationOrder',Modulation,'NormalizationMethod','Average Power','BitOutput',0);
 
 %%% PTS
-M=32; % number of blocks the symbol is divided into
+M=8; % number of blocks the symbol is divided into
 W=8; % number of possible phase
 
 %% Sanity checks
@@ -39,9 +39,12 @@ X_orig_shift=ifftshift(X_orig);
 
 %%
 x_Tx_orig=ifft(X_orig_shift);
-P_max_orig=max(x_Tx_orig.*conj(x_Tx_orig));
-P_avg_orig=mean(x_Tx_orig.*conj(x_Tx_orig));
-PAPR_orig=10*log10(P_max_orig/P_avg_orig);
+
+PAPR_orig=PAPR_calc(x_Tx_orig,4);
+
+% P_max_orig=max(x_Tx_orig.*conj(x_Tx_orig));
+% P_avg_orig=mean(x_Tx_orig.*conj(x_Tx_orig));
+% PAPR_orig=10*log10(P_max_orig/P_avg_orig)
 
 
 %% Tx Symbol splitting
@@ -66,10 +69,8 @@ for     kk=2:M
     x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X
     x_Tx_mat=x_subs_mat*diag(b); % like multiplying every column by the same integer
     x_Tx=sum(x_Tx_mat,2);
-    
-    P_max=max(x_Tx.*conj(x_Tx));
-    P_avg=mean(x_Tx.*conj(x_Tx));
-    PAPR_ref=10*log10(P_max/P_avg);
+
+    PAPR_ref=PAPR_calc(x_Tx,4);
     PAPR_min=PAPR_ref;
     
     ll_opt=0;
@@ -79,10 +80,8 @@ for     kk=2:M
         x_subs_mat=ifft(X_subs_mat);
         x_Tx_mat=x_subs_mat*diag(b);
         x_Tx=sum(x_Tx_mat,2);
-        
-        P_max=max(x_Tx.*conj(x_Tx));
-        P_avg=mean(x_Tx.*conj(x_Tx));
-        PAPR=10*log10(P_max/P_avg);
+    
+        PAPR=PAPR_calc(x_Tx,4);
         
         if PAPR<PAPR_min
             PAPR_min=PAPR;
@@ -105,14 +104,7 @@ x_Tx=sum(x_Tx_mat,2);
 
 %% PAPR measurement
 
-% x_Tx_orig=ifft(X_orig_shift);
-% P_max_orig=max(x_Tx_orig.*conj(x_Tx_orig));
-% P_avg_orig=mean(x_Tx_orig.*conj(x_Tx_orig));
-% PAPR_orig=10*log10(P_max_orig/P_avg_orig)
-
-P_max_manip=max(x_Tx.*conj(x_Tx));
-P_avg_manip=mean(x_Tx.*conj(x_Tx));
-PAPR_manip=10*log10(P_max_manip/P_avg_manip);
+PAPR_manip=PAPR_calc(x_Tx,4);
 PAPR_reduction=PAPR_orig-PAPR_manip
 
 %% Rx
@@ -136,7 +128,10 @@ data_Rx=step(hDemod,X_Rx);
 
 %% Analysis
 
-error=max(abs(data_Tx-data_Rx))
+error=max(abs(data_Tx-data_Rx));
+if error
+    error('Tx and Rx manipulations are not the inverse of each other')
+end
 
 figure
 set(gcf,'windowstyle','docked')
