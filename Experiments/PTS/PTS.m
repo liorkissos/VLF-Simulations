@@ -4,9 +4,15 @@ clear
 close all
 
 debug=0;
-reference_cfg=1;
+
+
+
 
 %% User defined parameters
+
+P=1000; % number of iterations
+
+reference_cfg=1;
 
 %scrambling='interleaved';
 scrambling='contiguous';
@@ -44,106 +50,134 @@ if mod(N/M,1)
     error('the symbol s subset lengths should be an integer number')
 end
 
-%% Data Generation
 
-data_Tx=randi(Modulation,N,1)-1;
 
-X_orig = step(hMod_data, data_Tx); % QAM modulation
-
-X_orig_shift=ifftshift(X_orig);
-
-%%  PAPR calculation: Pre Processing
-
-x_Tx_orig=ifft(X_orig_shift);
-x_Tx_orig=interp(x_Tx_orig,L);
-[PAPR_orig]=PAPR_calc(x_Tx_orig,1);
-
-if debug
-    %%% Frequency domain interpolation (as was demonstrated in the articles) versus time domain interpolation
-    %%% there is some difference (T domain PAPR is higher)that might be due
-    %%% to the interpolation filter and the windowing. the frequency domain
-    %%% zero-padding+idft is an "ideal" time domain interpolation is some
-    %%% way
-    x_Tx_orig1=L*ifft(X_orig_shift,L*N); % frequency domain interpolation, by zero padding
-    [PAPR_orig1,aaa]=PAPR_calc(x_Tx_orig1,1)
-    plot(real(x_Tx_orig1));hold on;plot(real(x_Tx_orig))
-    legend('F domain interp','T domain interp')
+Signal_orig=[];
+Signal_manip=[];
+for pp=1:P
     
-end
-
-
-%% Tx Symbol splitting
-
-X_subs_mat=zeros(N,M);
-
-switch scrambling
     
-    case 'interleaved'
-        
-        for kk=1:M %%% splitting in a "polyphase style"
-            ind_vec=kk:M:N;
-            X_subs_mat(:,kk)=upsample(X_orig_shift(ind_vec),M,kk-1);
-            
-        end
-        
-    case 'contiguous'
-        
-        for kk=1:M
-            X_subs_mat(:,kk)=[zeros((kk-1)*N/M,1);X_orig_shift((kk-1)*N/M+1:(kk)*N/M);zeros((M-kk)*N/M,1)];
-        end
-        
-end
-
-%% Phase optimization: see PAPR Reduction of OFDM Signals Using a Reduced Complexity PTS Technique, Hee Han& Hong Lee
-
-PAPR_min_vec=zeros(M,1);
-PAPR_min_vec(1)=PAPR_orig;
-
-b=ones(M,1); % see page 2 bottom left
-for     kk=2:M
+    %% Data Generation
     
-    x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X
-    x_Tx_mat=x_subs_mat*diag(b); % like multiplying every column by the same integer
-    x_Tx=sum(x_Tx_mat,2);
-
-    PAPR_ref=PAPR_calc(x_Tx,L);
-    PAPR_min=PAPR_ref;
+    data_Tx=randi(Modulation,N,1)-1;
     
-    ll_opt=0;
-    for ll=0:W-1 % equation (4) in Han & Lee
-        
-        b(kk)=exp(j*2*pi*ll/W);
-        x_subs_mat=ifft(X_subs_mat);
-        x_Tx_mat=x_subs_mat*diag(b);
-        x_Tx=sum(x_Tx_mat,2);
+    X_orig = step(hMod_data, data_Tx); % QAM modulation
     
-        PAPR=PAPR_calc(x_Tx,L);
-        
-        if PAPR<PAPR_min
-            PAPR_min=PAPR;
-            ll_opt=ll;
-        end
+    X_orig_shift=ifftshift(X_orig);
+    
+    %% PAPR calculation: Pre Processing
+    
+    x_Tx_orig=ifft(X_orig_shift);
+   % x_Tx_orig=interp(x_Tx_orig,L);
+    [PAPR_orig]=PAPR_calc(x_Tx_orig,L);
+    
+    if debug
+        %%% Frequency domain interpolation (as was demonstrated in the articles) versus time domain interpolation
+        %%% there is some difference (T domain PAPR is higher)that might be due
+        %%% to the interpolation filter and the windowing. the frequency domain
+        %%% zero-padding+idft is an "ideal" time domain interpolation is some
+        %%% way
+        x_Tx_orig1=L*ifft(X_orig_shift,L*N); % frequency domain interpolation, by zero padding
+        [PAPR_orig1,aaa]=PAPR_calc(x_Tx_orig1,1)
+        plot(real(x_Tx_orig1));hold on;plot(real(x_Tx_orig))
+        legend('F domain interp','T domain interp')
         
     end
     
-    b(kk)=exp(j*2*pi*ll_opt/W);
+    %% PTS Processing 1:Tx Symbol splitting
     
+    X_subs_mat=zeros(N,M);
     
-    PAPR_min_vec(kk)=PAPR_min;
+    switch scrambling
+        
+        case 'interleaved'
+            
+            for kk=1:M %%% splitting in a "polyphase style"
+                ind_vec=kk:M:N;
+                X_subs_mat(:,kk)=upsample(X_orig_shift(ind_vec),M,kk-1);
+                
+            end
+            
+        case 'contiguous'
+            
+            for kk=1:M
+                X_subs_mat(:,kk)=[zeros((kk-1)*N/M,1);X_orig_shift((kk-1)*N/M+1:(kk)*N/M);zeros((M-kk)*N/M,1)];
+            end
+            
+    end
+    
+    %% PTS Processing 2: Phase optimization: see PAPR Reduction of OFDM Signals Using a Reduced Complexity PTS Technique, Hee Han& Hong Lee
+    
+    PAPR_min_vec=zeros(M,1);
+    PAPR_min_vec(1)=PAPR_orig;
+    
+    b=ones(M,1); % see page 2 bottom left
+    for     kk=2:M
+        
+        x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X
+        x_Tx_mat=x_subs_mat*diag(b); % like multiplying every column by the same integer
+        x_Tx=sum(x_Tx_mat,2);
+        
+        PAPR_ref=PAPR_calc(x_Tx,L);
+        PAPR_min=PAPR_ref;
+        
+        ll_opt=0;
+        for ll=0:W-1 % equation (4) in Han & Lee
+            
+            b(kk)=exp(j*2*pi*ll/W);
+            x_subs_mat=ifft(X_subs_mat);
+            x_Tx_mat=x_subs_mat*diag(b);
+            x_Tx=sum(x_Tx_mat,2);
+            
+            PAPR=PAPR_calc(x_Tx,L);
+            
+            if PAPR<PAPR_min
+                PAPR_min=PAPR;
+                ll_opt=ll;
+            end
+            
+        end
+        
+        b(kk)=exp(j*2*pi*ll_opt/W);
+        
+        
+        PAPR_min_vec(kk)=PAPR_min;
+        
+    end
+    
+    %% PTS Processing 3: IDFT and summation
+    
+    x_subs_mat=ifft(X_subs_mat);
+    x_Tx_mat=x_subs_mat*diag(b);
+    x_Tx=sum(x_Tx_mat,2);
+    
+    %% PAPR measurement: Post Processing
+    
+    PAPR_manip(pp)=PAPR_calc(x_Tx,L);
+    PAPR_reduction(pp)=PAPR_orig-PAPR_manip(pp);
+    
+    %% Signal saving
+    
+    Signal_orig=[Signal_orig;x_Tx_orig];
+    Signal_manip=[Signal_manip;x_Tx];
     
 end
 
-x_subs_mat=ifft(X_subs_mat);
-x_Tx_mat=x_subs_mat*diag(b);
-x_Tx=sum(x_Tx_mat,2);
+%% Analysis (of the whole signal)
+
+ccdf = comm.CCDF('AveragePowerOutputPort',true, ...
+    'PeakPowerOutputPort',true,'MaximumPowerLimit',25);
+
+[CCDFy,CCDFx,AvgPwr,PeakPwr] = ccdf([Signal_orig Signal_manip]);
+
+figure
+plot(ccdf)
+set(gcf,'windowstyle','docked')
+shg
+legend('Original','Manipulated')
 
 
-%% PAPR measurement: Post Processing
-
-PAPR_manip=PAPR_calc(x_Tx,L);
-PAPR_reduction=PAPR_orig-PAPR_manip
-
-%% Rx
+%% Rx (of a single Tx symbol)
 
 X_Rx=fft(x_Tx);
 
@@ -174,8 +208,7 @@ X_Rx=fftshift(X_Rx);
 
 data_Rx=step(hDemod,X_Rx);
 
-
-%% Analysis
+ Analysis
 
 error=max(abs(data_Tx-data_Rx));
 if error
