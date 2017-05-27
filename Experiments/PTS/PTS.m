@@ -4,20 +4,35 @@ clear
 close all
 
 debug=0;
-
+reference_cfg=1;
 
 %% User defined parameters
 
-%%% Standard
-N=2^8; % length of symbol
-Modulation=16; % modulation index
+%scrambling='interleaved';
+scrambling='contiguous';
+
+%%% Standard. Hee& Han values: N=64, 128 . Modulation= QPSK (p.3)
+N=2^6; % length of symbol
+Modulation=4; % modulation index
 
 hMod_data = comm.RectangularQAMModulator('ModulationOrder',Modulation,'NormalizationMethod','Average Power','BitInput',0);
 hDemod = comm.RectangularQAMDemodulator('ModulationOrder',Modulation,'NormalizationMethod','Average Power','BitOutput',0);
 
-%%% PTS
-M=8; % number of blocks the symbol is divided into
-W=8; % number of possible phase
+%%% PTS.  Hee& Han values:  M=8, W=4
+M=4; % number of blocks the symbol is divided into
+W=4; % number of possible phase
+L=4; % interpolation factor. see Jiang& Wu equation 5
+
+
+if reference_cfg
+    N=2^6; % length of symbol
+    Modulation=4; % modulation index
+    
+    M=8; % number of blocks the symbol is divided into
+    W=4; % number of possible phase
+    L=4; % interpolation factor. see Jiang& Wu equation 5
+    
+end
 
 %% Sanity checks
 
@@ -37,25 +52,46 @@ X_orig = step(hMod_data, data_Tx); % QAM modulation
 
 X_orig_shift=ifftshift(X_orig);
 
-%%
+%%  PAPR calculation: Pre Processing
+
 x_Tx_orig=ifft(X_orig_shift);
+x_Tx_orig=interp(x_Tx_orig,L);
+[PAPR_orig]=PAPR_calc(x_Tx_orig,1);
 
-PAPR_orig=PAPR_calc(x_Tx_orig,4);
-
-% P_max_orig=max(x_Tx_orig.*conj(x_Tx_orig));
-% P_avg_orig=mean(x_Tx_orig.*conj(x_Tx_orig));
-% PAPR_orig=10*log10(P_max_orig/P_avg_orig)
+if debug
+    %%% Frequency domain interpolation (as was demonstrated in the articles) versus time domain interpolation
+    %%% there is some difference (T domain PAPR is higher)that might be due
+    %%% to the interpolation filter and the windowing. the frequency domain
+    %%% zero-padding+idft is an "ideal" time domain interpolation is some
+    %%% way
+    x_Tx_orig1=L*ifft(X_orig_shift,L*N); % frequency domain interpolation, by zero padding
+    [PAPR_orig1,aaa]=PAPR_calc(x_Tx_orig1,1)
+    plot(real(x_Tx_orig1));hold on;plot(real(x_Tx_orig))
+    legend('F domain interp','T domain interp')
+    
+end
 
 
 %% Tx Symbol splitting
 
-%%% splitting in a "polyphase style"
-
 X_subs_mat=zeros(N,M);
-for kk=1:M
-    ind_vec=kk:M:N;
-    X_subs_mat(:,kk)=upsample(X_orig_shift(ind_vec),M,kk-1);
+
+switch scrambling
     
+    case 'interleaved'
+        
+        for kk=1:M %%% splitting in a "polyphase style"
+            ind_vec=kk:M:N;
+            X_subs_mat(:,kk)=upsample(X_orig_shift(ind_vec),M,kk-1);
+            
+        end
+        
+    case 'contiguous'
+        
+        for kk=1:M
+            X_subs_mat(:,kk)=[zeros((kk-1)*N/M,1);X_orig_shift((kk-1)*N/M+1:(kk)*N/M);zeros((M-kk)*N/M,1)];
+        end
+        
 end
 
 %% Phase optimization: see PAPR Reduction of OFDM Signals Using a Reduced Complexity PTS Technique, Hee Han& Hong Lee
@@ -70,7 +106,7 @@ for     kk=2:M
     x_Tx_mat=x_subs_mat*diag(b); % like multiplying every column by the same integer
     x_Tx=sum(x_Tx_mat,2);
 
-    PAPR_ref=PAPR_calc(x_Tx,4);
+    PAPR_ref=PAPR_calc(x_Tx,L);
     PAPR_min=PAPR_ref;
     
     ll_opt=0;
@@ -81,7 +117,7 @@ for     kk=2:M
         x_Tx_mat=x_subs_mat*diag(b);
         x_Tx=sum(x_Tx_mat,2);
     
-        PAPR=PAPR_calc(x_Tx,4);
+        PAPR=PAPR_calc(x_Tx,L);
         
         if PAPR<PAPR_min
             PAPR_min=PAPR;
@@ -102,9 +138,9 @@ x_Tx_mat=x_subs_mat*diag(b);
 x_Tx=sum(x_Tx_mat,2);
 
 
-%% PAPR measurement
+%% PAPR measurement: Post Processing
 
-PAPR_manip=PAPR_calc(x_Tx,4);
+PAPR_manip=PAPR_calc(x_Tx,L);
 PAPR_reduction=PAPR_orig-PAPR_manip
 
 %% Rx
@@ -112,11 +148,24 @@ PAPR_reduction=PAPR_orig-PAPR_manip
 X_Rx=fft(x_Tx);
 
 X_Rx_mat=zeros(N,M);
-for kk=1:M
-    ind_vec=kk:M:N;
-    X_Rx_subs=X_Rx(ind_vec);
-    X_Rx_mat(:,kk)=(1./b(kk))*upsample(X_Rx_subs,M,kk-1);
+
+switch scrambling
     
+    case 'contiguous'
+        
+        for kk=1:M
+            X_Rx_mat(:,kk)=(1./b(kk))*[zeros((kk-1)*N/M,1);X_Rx((kk-1)*N/M+1:(kk)*N/M);zeros((M-kk)*N/M,1)];
+        end
+        
+    case 'interleaved'
+        
+        for kk=1:M
+            ind_vec=kk:M:N;
+            X_Rx_subs=X_Rx(ind_vec);
+            X_Rx_mat(:,kk)=(1./b(kk))*upsample(X_Rx_subs,M,kk-1);
+            
+        end
+        
 end
 
 X_Rx=sum(X_Rx_mat,2);

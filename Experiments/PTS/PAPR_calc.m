@@ -1,4 +1,4 @@
-function [ PAPR ] = PAPR_calc( x,L )
+function [ PAPR, P_avg_dB ] = PAPR_calc( x,L )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -18,6 +18,8 @@ P_max=max(x_interp.*conj(x_interp));
 P_avg=mean(x_interp.*conj(x_interp));
 
 PAPR=db(P_max/P_avg,'power');
+
+P_avg_dB=db(P_avg,'power');
 
 
 end
