@@ -14,8 +14,8 @@ P=1000; % number of iterations
 
 reference_cfg=1;
 
-%scrambling='interleaved';
-scrambling='contiguous';
+scrambling='interleaved';
+%scrambling='contiguous';
 
 %%% Standard. Hee& Han values: N=64, 128 . Modulation= QPSK (p.3)
 N=2^6; % length of symbol
@@ -26,7 +26,7 @@ hDemod = comm.RectangularQAMDemodulator('ModulationOrder',Modulation,'Normalizat
 
 %%% PTS.  Hee& Han values:  M=8, W=4
 M=4; % number of blocks the symbol is divided into
-W=4; % number of possible phase
+W=4; % number of possible phases
 L=4; % interpolation factor. see Jiang& Wu equation 5
 
 
@@ -35,7 +35,7 @@ if reference_cfg
     Modulation=4; % modulation index
     
     M=8; % number of blocks the symbol is divided into
-    W=4; % number of possible phase
+    W=4; % number of possible phases
     L=4; % interpolation factor. see Jiang& Wu equation 5
     
 end
@@ -50,10 +50,16 @@ if mod(N/M,1)
     error('the symbol s subset lengths should be an integer number')
 end
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Algorithm execution
+%%%%%%%%%%%%%%%%%%%%%%%%
 
 Signal_orig=[];
 Signal_manip=[];
+
+PAPR_manip=1000*ones(P,1);
+%  PAPR_reduction=1000*ones(P,1);
+
 for pp=1:P
     
     
@@ -68,8 +74,8 @@ for pp=1:P
     %% PAPR calculation: Pre Processing
     
     x_Tx_orig=ifft(X_orig_shift);
-   % x_Tx_orig=interp(x_Tx_orig,L);
-    [PAPR_orig]=PAPR_calc(x_Tx_orig,L);
+    % x_Tx_orig=interp(x_Tx_orig,L);
+    [PAPR_orig(pp)]=PAPR_calc(x_Tx_orig,L);
     
     if debug
         %%% Frequency domain interpolation (as was demonstrated in the articles) versus time domain interpolation
@@ -107,12 +113,19 @@ for pp=1:P
     end
     
     %% PTS Processing 2: Phase optimization: see PAPR Reduction of OFDM Signals Using a Reduced Complexity PTS Technique, Hee Han& Hong Lee
+    %%% the technique: 1) we divide a block into M subsets. 2) we multiply
+    %%% subset # 1 with 1. 2) with each of the follwing M-1 subsets (index kk) we operate as
+    %%% follows: We look for an optimum complex factor to minimize the total
+    %%% PAPR with the symbol so far . we begin with a b vector that is a
+    %%% "ones" vector. b(1)=1 and we do not change it. with b(2) and on, we
+    %%% run over the W possible phases to choose the one that optimizes the
+    %%% PAPR
     
     PAPR_min_vec=zeros(M,1);
-    PAPR_min_vec(1)=PAPR_orig;
+    PAPR_min_vec(1)=PAPR_orig(pp);
     
     b=ones(M,1); % see page 2 bottom left
-    for     kk=2:M
+    for     kk=2:M % running over the M sub-blocks
         
         x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X
         x_Tx_mat=x_subs_mat*diag(b); % like multiplying every column by the same integer
@@ -122,7 +135,7 @@ for pp=1:P
         PAPR_min=PAPR_ref;
         
         ll_opt=0;
-        for ll=0:W-1 % equation (4) in Han & Lee
+        for ll=0:W-1 % equation (4) in Han & Lee. running over the W possible phases
             
             b(kk)=exp(j*2*pi*ll/W);
             x_subs_mat=ifft(X_subs_mat);
@@ -154,7 +167,7 @@ for pp=1:P
     %% PAPR measurement: Post Processing
     
     PAPR_manip(pp)=PAPR_calc(x_Tx,L);
-    PAPR_reduction(pp)=PAPR_orig-PAPR_manip(pp);
+    PAPR_reduction(pp)=PAPR_orig(pp)-PAPR_manip(pp);
     
     %% Signal saving
     
@@ -173,8 +186,19 @@ ccdf = comm.CCDF('AveragePowerOutputPort',true, ...
 figure
 plot(ccdf)
 set(gcf,'windowstyle','docked')
-shg
 legend('Original','Manipulated')
+
+figure
+set(gcf,'windowstyle','docked')
+plot(PAPR_orig)
+hold on
+plot(PAPR_manip)
+legend('Pre-PTS','Post-PTS')
+grid minor
+title({['PAPR post PTS of a stream of N=',num2str(N),' symbols'],['average PAPR reduction=',num2str(db(mean(db2mag(PAPR_reduction)))),'[dB]']})
+ylabel('PAPR [dB]')
+xlabel('iteration')
+
 
 
 %% Rx (of a single Tx symbol)
@@ -208,7 +232,18 @@ X_Rx=fftshift(X_Rx);
 
 data_Rx=step(hDemod,X_Rx);
 
- Analysis
+%% Analysis (of a single symbol, the last one in the P long stream)
+
+hEVM=comm.EVM('Normalization','Average reference signal power');
+EVM=step(hEVM,X_orig,X_Rx);
+EVM_dB=db(EVM/100);
+
+figure
+scatterplot(X_Rx);
+set(gcf,'windowstyle','docked');
+title(gca,['scatter plot of the last symbol of the stream. EVM=',num2str(EVM_dB),'[dB]'])
+grid on
+grid minor
 
 error=max(abs(data_Tx-data_Rx));
 if error
@@ -217,12 +252,13 @@ end
 
 figure
 set(gcf,'windowstyle','docked')
-shg
 plot(PAPR_min_vec)
 grid minor
-title({['PAPR optimization evolution'],['PAPR reduction=',num2str(PAPR_reduction),'[dB]']})
+title(['PAPR optimization evolution (of the last symbol)'])
+%title({['PAPR optimization evolution (of the last symbol)'],['PAPR reduction=',num2str(PAPR_reduction),'[dB]']})
 ylabel('PAPR [dB]')
 xlabel('iteration')
+shg
 
 
 if debug
