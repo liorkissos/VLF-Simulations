@@ -8,9 +8,12 @@ debug=0;
 
 %% User defined parameters
 
-P=1000; % number of iterations
+P=1000; % number of symbols in the stream
 
 reference_cfg=1;
+
+PTS_algorithm= 'Iterative_Flipping';
+%PTS_algorithm= 'Reduced_Complexity';
 
 %scrambling='interleaved';
 scrambling='contiguous';
@@ -35,6 +38,7 @@ if reference_cfg
     M=8; % number of blocks the symbol is divided into
     W=4; % number of possible phases
     L=4; % interpolation factor. see Jiang& Wu equation 5
+    r=2; % Hamming search radius of the Reduced Complexity PTS
     
 end
 
@@ -58,7 +62,7 @@ Signal_manip=[];
 PAPR_manip=1000*ones(P,1);
 %  PAPR_reduction=1000*ones(P,1);
 
-for pp=1:P
+for pp=1:P % running over the stream
     
     
     %% Data Generation
@@ -110,6 +114,9 @@ for pp=1:P
             
     end
     
+    x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X
+    
+    
     %% PTS Processing 2: Phase optimization: see PAPR Reduction of OFDM Signals Using a Reduced Complexity PTS Technique, Hee Han& Hong Lee
     %%% the technique: 1) we divide a block into M subsets. 2) we multiply
     %%% subset # 1 with 1. 2) with each of the follwing M-1 subsets (index kk) we operate as
@@ -123,43 +130,83 @@ for pp=1:P
     PAPR_min_vec(1)=PAPR_orig(pp);
     
     b=ones(M,1); % see page 2 bottom left
-    for     kk=2:M % running over the M sub-blocks
+    b_opt=ones(M,1);
+    
+    switch PTS_algorithm
         
-        x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X
-        x_Tx_mat=x_subs_mat*diag(b); % like multiplying every column by the same integer
-        x_Tx=sum(x_Tx_mat,2);
-        
-        PAPR_ref=PAPR_calc(x_Tx,L);
-        PAPR_min=PAPR_ref;
-        
-        ll_opt=0;
-        for ll=0:W-1 % equation (4) in Han & Lee. running over the W possible phases
+        case 'Iterative_Flipping'
             
-            b(kk)=exp(j*2*pi*ll/W);
-            x_subs_mat=ifft(X_subs_mat);
-            x_Tx_mat=x_subs_mat*diag(b); % multiplication of 
-            x_Tx=sum(x_Tx_mat,2);
+            %   x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X
             
-            PAPR=PAPR_calc(x_Tx,L);
-            
-            if PAPR<PAPR_min
-                PAPR_min=PAPR;
-                ll_opt=ll;
+            for     kk=2:M % running over the M sub-blocks
+                
+                %   x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X
+                x_Tx_mat=x_subs_mat*diag(b); % like multiplying every column by the same integer
+                x_Tx=sum(x_Tx_mat,2);
+                
+                PAPR_ref=PAPR_calc(x_Tx,L);
+                PAPR_min=PAPR_ref;
+                
+                ll_opt=0;
+                for ll=0:W-1 % equation (4) in Han & Lee. running over the W possible phases
+                    
+                    b(kk)=exp(j*2*pi*ll/W);
+                    % x_subs_mat=ifft(X_subs_mat);
+                    x_Tx_mat=x_subs_mat*diag(b); % multiplication of every column of x_Tx_mat by a scalar; a term in  vector
+                    x_Tx=sum(x_Tx_mat,2);
+                    
+                    PAPR=PAPR_calc(x_Tx,L);
+                    
+                    if PAPR<PAPR_min
+                        PAPR_min=PAPR;
+                        ll_opt=ll;
+                        b_opt(kk)=exp(j*2*pi*ll_opt/W);
+                    end
+                    
+                end
+                
+                b(kk)=exp(j*2*pi*ll_opt/W);
+                
+                
+                PAPR_min_vec(kk)=PAPR_min;
+                
             end
             
-        end
-        
-        b(kk)=exp(j*2*pi*ll_opt/W);
-        
-        
-        PAPR_min_vec(kk)=PAPR_min;
-        
-    end
+        case 'Reduced_Complexity'
+            
+            PAPR_min=PAPR_orig(pp); % PAPR is referenced to the one obtained with no signal processing
+            
+            ind_mat=combnk(1:M,r);
+            
+            for ii=1:size(ind_mat,1) % running on the matrix rows
+                
+                a=exp(j*2*pi*(0:W-1)/W);
+                c=combnk(a,r);
+                
+                for jj=1:length(c)
+                    
+                    b(ind_mat(ii,:))=c(jj,:);
+                    
+                    x_Tx_mat=x_subs_mat*diag(b); % multiplication of every column of x_Tx_mat by a scalar; a term in  vector
+                    x_Tx=sum(x_Tx_mat,2);
+                    
+                    PAPR=PAPR_calc(x_Tx,L);
+                    
+                    if PAPR<PAPR_min
+                        PAPR_min=PAPR
+                     %   ind_opt=[ii;jj];      
+                        b_opt=b;
+                    end
+                    
+                end % for: b indexes combinations
+            end % for: b values
+
+    end % Switch PTS algorithms
     
     %% PTS Processing 3: IDFT and summation
     
     x_subs_mat=ifft(X_subs_mat);
-    x_Tx_mat=x_subs_mat*diag(b);
+    x_Tx_mat=x_subs_mat*diag(b_opt);
     x_Tx=sum(x_Tx_mat,2);
     
     %% PAPR measurement: Post Processing
@@ -210,7 +257,7 @@ switch scrambling
     case 'contiguous'
         
         for kk=1:M
-            X_Rx_mat(:,kk)=(1./b(kk))*[zeros((kk-1)*N/M,1);X_Rx((kk-1)*N/M+1:(kk)*N/M);zeros((M-kk)*N/M,1)];
+            X_Rx_mat(:,kk)=(1./b_opt(kk))*[zeros((kk-1)*N/M,1);X_Rx((kk-1)*N/M+1:(kk)*N/M);zeros((M-kk)*N/M,1)];
         end
         
     case 'interleaved'
@@ -218,7 +265,7 @@ switch scrambling
         for kk=1:M
             ind_vec=kk:M:N;
             X_Rx_subs=X_Rx(ind_vec);
-            X_Rx_mat(:,kk)=(1./b(kk))*upsample(X_Rx_subs,M,kk-1);
+            X_Rx_mat(:,kk)=(1./b_opt(kk))*upsample(X_Rx_subs,M,kk-1);
             
         end
         
