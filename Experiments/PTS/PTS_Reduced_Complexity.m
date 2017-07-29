@@ -12,8 +12,8 @@ P=1000; % number of symbols in the stream
 
 reference_cfg=1;
 
-PTS_algorithm= 'Iterative_Flipping';
-%PTS_algorithm= 'Reduced_Complexity';
+%PTS_algorithm= 'Iterative_Flipping';
+PTS_algorithm= 'Reduced_Complexity';
 
 %scrambling='interleaved';
 scrambling='contiguous';
@@ -180,8 +180,8 @@ for pp=1:P % running over the stream
             
             for ii=1:size(ind_mat,1) % running on the matrix rows
                 
-                a=exp(j*2*pi*(0:W-1)/W);
-                c=combnk(a,r);
+                b=ones(M,1);
+                c=combnk(exp(j*2*pi*(0:W-1)/W),r);
                 
                 for jj=1:length(c)
                     
@@ -193,8 +193,36 @@ for pp=1:P % running over the stream
                     PAPR=PAPR_calc(x_Tx,L);
                     
                     if PAPR<PAPR_min
-                        PAPR_min=PAPR
-                     %   ind_opt=[ii;jj];      
+                        PAPR_min=PAPR;     
+                        b_opt=b;
+                    end
+                    
+                end % for: b indexes combinations
+            end % for: b values
+            
+            
+            
+            %%%% second iteration. initial b is the one obtained on
+            %%%% previous iteration
+            
+            b_1st_iter=b_opt;
+            
+            for ii=1:size(ind_mat,1) % running on the matrix rows
+                
+                b=b_1st_iter;
+                c=combnk(exp(j*2*pi*(0:W-1)/W),r);
+                
+                for jj=1:length(c)
+                    
+                    b(ind_mat(ii,:))=c(jj,:);
+                    
+                    x_Tx_mat=x_subs_mat*diag(b); % multiplication of every column of x_Tx_mat by a scalar; a term in  vector
+                    x_Tx=sum(x_Tx_mat,2);
+                    
+                    PAPR=PAPR_calc(x_Tx,L);
+                    
+                    if PAPR<PAPR_min
+                        PAPR_min=PAPR;
                         b_opt=b;
                     end
                     
@@ -205,7 +233,7 @@ for pp=1:P % running over the stream
     
     %% PTS Processing 3: IDFT and summation
     
-    x_subs_mat=ifft(X_subs_mat);
+    %x_subs_mat=ifft(X_subs_mat);
     x_Tx_mat=x_subs_mat*diag(b_opt);
     x_Tx=sum(x_Tx_mat,2);
     
