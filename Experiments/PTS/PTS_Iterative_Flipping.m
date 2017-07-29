@@ -6,16 +6,14 @@ close all
 debug=0;
 
 
-% AAAAAAAAAAAAAA
-
 %% User defined parameters
 
 P=1000; % number of iterations
 
 reference_cfg=1;
 
-scrambling='interleaved';
-%scrambling='contiguous';
+%scrambling='interleaved';
+scrambling='contiguous';
 
 %%% Standard. Hee& Han values: N=64, 128 . Modulation= QPSK (p.3)
 N=2^6; % length of symbol
@@ -139,7 +137,7 @@ for pp=1:P
             
             b(kk)=exp(j*2*pi*ll/W);
             x_subs_mat=ifft(X_subs_mat);
-            x_Tx_mat=x_subs_mat*diag(b);
+            x_Tx_mat=x_subs_mat*diag(b); % multiplication of 
             x_Tx=sum(x_Tx_mat,2);
             
             PAPR=PAPR_calc(x_Tx,L);
