@@ -26,16 +26,16 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     
     %% Simulation parameters
     
-    MIMO_depth=1;
+    MIMO_depth=3;
     
     %Link_Type='HW'
     Link_Type='SW'
     
-    %Configuration='Operational' % OFDM, real channel, non identical symbols, IF signal, Minn& Zeng time synchronization
-    Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
+    Configuration='Operational' % OFDM, real channel, non identical symbols, IF signal, Minn& Zeng time synchronization
+    %Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
     %Configuration='Impulse Response'; % signal containing impulses at each
     
-    N_symbols=40000; % number of QAM symbols in the Frame
+    N_symbols=1000; % number of QAM symbols in the Frame
     % N_symbols=45590; % number of QAM symbols in the Frame
     
     
@@ -839,7 +839,7 @@ if nargin<1
     Testing_data.Group_delay_Tx_total=round(Testing_data.Group_delay_total);
     
     %hCCDF = comm.CCDF('PAPROutputPort',true, 'MaximumPowerLimit', 60)  ; % adapted to the maximum range of the D/A and the A/D(-10,10)
-    hCCDF = comm.CCDF('PAPROutputPort',true, 'MaximumPowerLimit', 2)  ;
+    hCCDF = comm.CCDF('PAPROutputPort',true, 'MaximumPowerLimit', 1)  ;
     [CCDFx,CCDFy,PAPR]=step(hCCDF,Signal_Tx_digital(Testing_data.Group_delay_Tx_total+1:end));
     PAPR_dB=PAPR
     

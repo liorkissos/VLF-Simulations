@@ -174,7 +174,9 @@ R3=E3/E4; % should result in 1, aince guard bands do not add any power
 
 %% Time Domain %%
 
-%% 5) IDFT:
+%% 5) IDFT or PTS
+
+if 1
 %%% the IDFT mutiplies the 1st carrier with 0*n [rad] (n=time index)
 %%% and the last carrier with 2*pi*n [rad]. Since we want the 1st to be
 %%% multiplied with -pi*n and the last with +pi*n, we need to apply
@@ -200,6 +202,33 @@ if test_signal_processing_flag
     B=fftshift(fft(OFDM_matrix_Tx_t(:,5)));
     plot(db(abs(B)))
     grid on
+    
+end
+
+else % PTS
+    
+    %PTS_algorithm= 'Iterative_Flipping';
+%PTS_algorithm= 'Reduced_Complexity';
+
+%scrambling='interleaved';
+%scrambling='contiguous';
+    
+PTS_algorithm ='Iterative_Flipping';
+scrambling= 'contiguous';
+
+M=4; % number of blocks the symbol is divided into
+W=4; % number of possible phases
+L=4; % interpolation factor. see Jiang& Wu equation 5
+    
+OFDM_config.PTS.PTS_algorithm=PTS_algorithm;
+OFDM_config.PTS.scrambling=scrambling;
+
+OFDM_config.PTS.M=M; % number of blocks the symbol is divided into
+OFDM_config.PTS.W=W; % number of possible phases
+OFDM_config.PTS.L=L; % interpolation factor. see Jiang& Wu equation 5
+    
+    OFDM_matrix_Tx_f=ifftshift(OFDM_matrix_Tx_f,1); %  fftshift ove the columns. see comment above
+    OFDM_matrix_Tx_t=PTS_Tx(OFDM_matrix_Tx_f,OFDM_config);
     
 end
 

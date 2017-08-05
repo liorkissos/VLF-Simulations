@@ -804,6 +804,15 @@ end
 OFDM_matrix_Rx_f=OFDM_matrix_Rx_f(:,N_preamble_CE+1:end); % removal of the channel estimtion preamble
 N_frames_Rx=N_frames_Rx-N_preamble_CE; % reflects the removal of the 2 preamble_CE's (=channel estimating)
 
+
+%% IPTS
+
+if 0
+    
+    
+    
+end
+
 %% 15) Pilots removal
 
 if Npilots % if pilots are present

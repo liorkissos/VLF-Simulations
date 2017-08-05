@@ -59,6 +59,8 @@ end
 Signal_orig=[];
 Signal_manip=[];
 
+
+
 PAPR_manip=1000*ones(P,1);
 %  PAPR_reduction=1000*ones(P,1);
 
@@ -114,7 +116,7 @@ for pp=1:P % running over the stream
             
     end
     
-    x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X
+    x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X. see Han& Lee fig. 1
     
     
     %% PTS Processing 2: Phase optimization: see PAPR Reduction of OFDM Signals Using a Reduced Complexity PTS Technique, Hee Han& Hong Lee
@@ -129,7 +131,7 @@ for pp=1:P % running over the stream
     PAPR_min_vec=zeros(M,1);
     PAPR_min_vec(1)=PAPR_orig(pp);
     
-    b=ones(M,1); % see page 2 bottom left
+    b=ones(M,1); % The phase factor vector. see page 2 bottom left. 
     b_opt=ones(M,1);
     
     switch PTS_algorithm
@@ -172,20 +174,20 @@ for pp=1:P % running over the stream
                 
             end
             
-        case 'Reduced_Complexity'
+        case 'Reduced_Complexity' % Han& Lee, section C, page 3 upper left. r2/I2 option
             
             PAPR_min=PAPR_orig(pp); % PAPR is referenced to the one obtained with no signal processing
             
-            ind_mat=combnk(1:M,r);
+            ind_mat=combnk(1:M,r);% we check the PAPR when r terms within b vector change. ind_mat contains the possible indexes of those terms
             
             for ii=1:size(ind_mat,1) % running on the matrix rows
                 
                 b=ones(M,1);
-                c=combnk(exp(j*2*pi*(0:W-1)/W),r);
+                c=combnk(exp(j*2*pi*(0:W-1)/W),r); % each of the r terms within b has one of the values within exp(j*2*pi*(0:W-1)/W)
                 
                 for jj=1:length(c)
                     
-                    b(ind_mat(ii,:))=c(jj,:);
+                    b(ind_mat(ii,:))=c(jj,:); % the r terms within b are assigned r values
                     
                     x_Tx_mat=x_subs_mat*diag(b); % multiplication of every column of x_Tx_mat by a scalar; a term in  vector
                     x_Tx=sum(x_Tx_mat,2);
@@ -202,10 +204,10 @@ for pp=1:P % running over the stream
             
             
             
-            %%%% second iteration. initial b is the one obtained on
+            %%%% second iteration (reminder r2/I2 option, namely I2= 2 iterations). initial b is the one obtained on
             %%%% previous iteration
             
-            b_1st_iter=b_opt;
+            b_1st_iter=b_opt; % initial b vecotr on 2nd iteration is the optimum of the previous one
             
             for ii=1:size(ind_mat,1) % running on the matrix rows
                 
@@ -311,28 +313,32 @@ hEVM=comm.EVM('Normalization','Average reference signal power');
 EVM=step(hEVM,X_orig,X_Rx);
 EVM_dB=db(EVM/100);
 
-figure
+
+%figure
 scatterplot(X_Rx);
 set(gcf,'windowstyle','docked');
 title(gca,['scatter plot of the last symbol of the stream. EVM=',num2str(EVM_dB),'[dB]'])
 grid on
 grid minor
 
+
 error=max(abs(data_Tx-data_Rx));
 if error
     error('Tx and Rx manipulations are not the inverse of each other')
 end
 
-figure
-set(gcf,'windowstyle','docked')
-plot(PAPR_min_vec)
-grid minor
-title(['PAPR optimization evolution (of the last symbol)'])
-%title({['PAPR optimization evolution (of the last symbol)'],['PAPR reduction=',num2str(PAPR_reduction),'[dB]']})
-ylabel('PAPR [dB]')
-xlabel('iteration')
-shg
-
+if strcmp(PTS_algorithm,'Iterative_Flipping')
+    
+    figure
+    set(gcf,'windowstyle','docked')
+    plot(PAPR_min_vec)
+    grid minor
+    title(['PAPR optimization evolution (of the last symbol)'])
+    %title({['PAPR optimization evolution (of the last symbol)'],['PAPR reduction=',num2str(PAPR_reduction),'[dB]']})
+    ylabel('PAPR [dB]')
+    xlabel('iteration')
+    
+end
 
 if debug
     
