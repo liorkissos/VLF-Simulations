@@ -106,22 +106,28 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
         Enhancement_prmbl_CE=4.3; %
         Enhancement_prmbl_synch=3.2; %
         
+        PTS=0;
+        M_PTS=4;
+        W_PTS=4;
+        L_PTS=4;
+        
         
         
         %%% Config # 3: 802.11a. 64 subcarriers
-        %             F_chip=2.94e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
-        %             N_FFT=64;
-        %             Npilots=2;
-        %             Nguard_band_left=7; %  do not vary! lower number than 6 will harm the anti aliasing filter and thus the performance
-        %             Nguard_band_right=Nguard_band_left-1; % do not vary!
-        %             N_CP=12;
-        %             Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
-        %             P_total=1; % total OFDM symbol (time domain) power
-        %             M=64; % QAM order
-        %             N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
-        %             N_preamble_synch=32; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
-        %             Enhancement_prmbl_CE=7.15; %
-        %             Enhancement_prmbl_synch=4.1; %
+%                    % F_chip=2.94e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
+%                     F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
+%                     N_FFT=64;
+%                     Npilots=2;
+%                     Nguard_band_left=7; %  do not vary! lower number than 6 will harm the anti aliasing filter and thus the performance
+%                     Nguard_band_right=Nguard_band_left-1; % do not vary!
+%                     N_CP=12;
+%                     Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
+%                     P_total=1; % total OFDM symbol (time domain) power
+%                     M=64; % QAM order
+%                     N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
+%                     N_preamble_synch=32; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
+%                     Enhancement_prmbl_CE=7.15; %
+%                     Enhancement_prmbl_synch=4.1; %
         
         
         
@@ -370,8 +376,11 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     
     Length_Frame=N_FFT+N_CP; % length of the frame to be serialized->upsampled->reconstructed (D/A'ed)
     
-    
-    N_data=N_FFT-(Nguard_band_left+Nguard_band_right+Npilots+1); % DC subcarrier is a null too- that's why we reduce anotther data subcarrier
+   % if PTS
+    %    N_data=N_FFT-(Nguard_band_left+Nguard_band_right+Npilots+M_PTS+1); % DC subcarrier is a null too- that's why we reduce anotther data subcarrier
+   % else
+        N_data=N_FFT-(Nguard_band_left+Nguard_band_right+Npilots+1); % DC subcarrier is a null too- that's why we reduce anotther data subcarrier
+   % end
     
     % T is the duration of the rectangular function of every g_n(t) basis
     % function. Therefore the bandwidth of each subcarrier (a sinc function) is 1/T.
@@ -565,6 +574,11 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     OFDM_config.Enhancement_prmbl_synch=Enhancement_prmbl_synch;
     
     
+    OFDM_config.PTS.PTS=PTS;
+    OFDM_config.PTS.M_PTS=M_PTS;
+    OFDM_config.PTS.W_PTS=W_PTS;
+    OFDM_config.PTS.L_PTS=L_PTS;
+    
     IF_chain_config.F_if=F_if;
     IF_chain_config.N_upsample=N_upsample;
     IF_chain_config.N_upsample_ZOH=N_upsample_ZOH;
@@ -628,13 +642,18 @@ if strcmp(Design_flag,'Load')
 end
 
 %% Generation & QAM Modulation
+
+% if PTS
+%     OFDM_config.N_data=N_data-M_PTS; %modulator is required to generate less than N_data in PTS case to leave space for the PTS coefficients
+% end
+
 bit_stream=[];
 
-% N_data_bits_sSymbol=N_data*log2(M); % data bit per super symbol (=OFDM symbol)
-% LCM=lcm(N_data_bits_sSymbol,lcm(8,K_coding));
-% bit_stream=randi([0 1],101e3,1); %
+[Symbol_stream_Tx,data_PreCoded_Tx,data_Tx,OFDM_config,N_bits,t1_tx ] = Modulator(bit_stream,Coding_config,OFDM_config,Simulation_config,Audio_config);
 
-[ Symbol_stream_Tx,data_PreCoded_Tx,data_Tx,OFDM_config,N_bits,t1_tx ] = Modulator(bit_stream,Coding_config,OFDM_config,Simulation_config,Audio_config);
+% if PTS
+%     OFDM_config.N_data=N_data; % we restore the original N_data
+% end
 %% Transmission
 
 

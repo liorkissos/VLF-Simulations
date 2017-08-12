@@ -77,7 +77,7 @@ end
 P_data=P_total/(Amp_pilots*Npilots+N_data); % average power of data subcarrier
 
 %% 2) Frame construction and Pilots& DC insertion insertion
-%%% Burst initialization: each row represents an OFDM symbol ("super symbol")
+%%% Burst initialization: each column represents an OFDM symbol ("super symbol")
 
 
 N_frames_Tx=length(Symbol_stream_Tx)/N_data;
@@ -176,56 +176,59 @@ R3=E3/E4; % should result in 1, aince guard bands do not add any power
 
 %% 5) IDFT or PTS
 
-if 1
-%%% the IDFT mutiplies the 1st carrier with 0*n [rad] (n=time index)
-%%% and the last carrier with 2*pi*n [rad]. Since we want the 1st to be
-%%% multiplied with -pi*n and the last with +pi*n, we need to apply
-%%% ifftshift to the frequency domain OFDM symbol priot to the application
-%%% of ifft
-
-OFDM_matrix_Tx_f=ifftshift(OFDM_matrix_Tx_f,1); %  fftshift ove the columns. see comment above
-OFDM_matrix_Tx_t=ifft(OFDM_matrix_Tx_f); % the famous OFD IDFT operation. The Matlab function includes the 1/N_FFT factor required by OFDM
-
-
-if test_signal_processing_flag
-    figure(1)
-    set(gcf,'windowstyle','docked');
-    stem(real(OFDM_matrix_Tx_f(:,5)))
-    hold on
-    stem(imag(OFDM_matrix_Tx_f(:,5)))
-    hold off
-    grid minor
-    title('OFDM subcarriers (after fftshift)')
+if ~OFDM_config.PTS.PTS % 0= PTS
+    %%% the IDFT mutiplies the 1st carrier with 0*n [rad] (n=time index)
+    %%% and the last carrier with 2*pi*n [rad]. Since we want the 1st to be
+    %%% multiplied with -pi*n and the last with +pi*n, we need to apply
+    %%% ifftshift to the frequency domain OFDM symbol priot to the application
+    %%% of ifft
     
-    figure(2)
-    set(gcf,'windowstyle','docked');
-    B=fftshift(fft(OFDM_matrix_Tx_t(:,5)));
-    plot(db(abs(B)))
-    grid on
+    OFDM_matrix_Tx_f=ifftshift(OFDM_matrix_Tx_f,1); %  fftshift ove the columns. see comment above
+    OFDM_matrix_Tx_t=ifft(OFDM_matrix_Tx_f); % the famous OFD IDFT operation. The Matlab function includes the 1/N_FFT factor required by OFDM
     
-end
-
+    
+    if test_signal_processing_flag
+        figure(1)
+        set(gcf,'windowstyle','docked');
+        stem(real(OFDM_matrix_Tx_f(:,5)))
+        hold on
+        stem(imag(OFDM_matrix_Tx_f(:,5)))
+        hold off
+        grid minor
+        title('OFDM subcarriers (after fftshift)')
+        
+        figure(2)
+        set(gcf,'windowstyle','docked');
+        B=fftshift(fft(OFDM_matrix_Tx_t(:,5)));
+        plot(db(abs(B)))
+        grid on
+        
+    end
+    
 else % PTS
     
     %PTS_algorithm= 'Iterative_Flipping';
-%PTS_algorithm= 'Reduced_Complexity';
-
-%scrambling='interleaved';
-%scrambling='contiguous';
+    %PTS_algorithm= 'Reduced_Complexity';
     
-PTS_algorithm ='Iterative_Flipping';
-scrambling= 'contiguous';
-
-M=4; % number of blocks the symbol is divided into
-W=4; % number of possible phases
-L=4; % interpolation factor. see Jiang& Wu equation 5
+    %scrambling='interleaved';
+    %scrambling='contiguous';
     
-OFDM_config.PTS.PTS_algorithm=PTS_algorithm;
-OFDM_config.PTS.scrambling=scrambling;
-
-OFDM_config.PTS.M=M; % number of blocks the symbol is divided into
-OFDM_config.PTS.W=W; % number of possible phases
-OFDM_config.PTS.L=L; % interpolation factor. see Jiang& Wu equation 5
+    PTS_algorithm ='Iterative_Flipping';
+    scrambling= 'contiguous';
+    
+    M=4; % number of blocks the symbol is divided into
+    W=4; % number of possible phases
+    L=4; % interpolation factor. see Jiang& Wu equation 5
+    
+    OFDM_config.PTS.PTS_algorithm=PTS_algorithm;
+    OFDM_config.PTS.scrambling=scrambling;
+    
+   % OFDM_config.PTS.M=M; % number of blocks the symbol is divided into
+   % OFDM_config.PTS.W=W; % number of possible phases
+   % OFDM_config.PTS.L=L; % interpolation factor. see Jiang& Wu equation 5
+    
+    OFDM_config.PTS.P_data=P_data;
+    
     
     OFDM_matrix_Tx_f=ifftshift(OFDM_matrix_Tx_f,1); %  fftshift ove the columns. see comment above
     OFDM_matrix_Tx_t=PTS_Tx(OFDM_matrix_Tx_f,OFDM_config);
