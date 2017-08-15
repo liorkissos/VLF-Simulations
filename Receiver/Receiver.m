@@ -621,7 +621,7 @@ for mm=1:MIMO_depth
     
     %% 11) Equalizer
     
-    switch N_FFT
+    switch N_FFT % sequences include the DC subcarrier
         case 512
             load('PN_seq_512.mat')
         case 256

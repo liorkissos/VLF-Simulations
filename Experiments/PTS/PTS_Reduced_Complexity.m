@@ -26,7 +26,7 @@ hMod_data = comm.RectangularQAMModulator('ModulationOrder',Modulation,'Normaliza
 hDemod = comm.RectangularQAMDemodulator('ModulationOrder',Modulation,'NormalizationMethod','Average Power','BitOutput',0);
 
 %%% PTS.  Hee& Han values:  M=8, W=4
-M=4; % number of blocks the symbol is divided into
+M=8; % number of blocks the symbol is divided into
 W=4; % number of possible phases
 L=4; % interpolation factor. see Jiang& Wu equation 5
 
@@ -59,7 +59,7 @@ end
 Signal_orig=[];
 Signal_manip=[];
 
-
+PAPR_orig=zeros(P,1);
 
 PAPR_manip=1000*ones(P,1);
 %  PAPR_reduction=1000*ones(P,1);

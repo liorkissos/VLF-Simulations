@@ -208,20 +208,18 @@ if ~OFDM_config.PTS.PTS % 0= PTS
 else % PTS
     
     %PTS_algorithm= 'Iterative_Flipping';
-    %PTS_algorithm= 'Reduced_Complexity';
-    
-    %scrambling='interleaved';
-    %scrambling='contiguous';
-    
-    PTS_algorithm ='Iterative_Flipping';
+    PTS_algorithm= 'Reduced_Complexity';
+
     scrambling= 'contiguous';
+    %scrambling='interleaved';
     
-    M=4; % number of blocks the symbol is divided into
-    W=4; % number of possible phases
-    L=4; % interpolation factor. see Jiang& Wu equation 5
+%     M=4; % number of blocks the symbol is divided into
+%     W=4; % number of possible phases
+%     L=4; % interpolation factor. see Jiang& Wu equation 5
     
     OFDM_config.PTS.PTS_algorithm=PTS_algorithm;
     OFDM_config.PTS.scrambling=scrambling;
+    
     
    % OFDM_config.PTS.M=M; % number of blocks the symbol is divided into
    % OFDM_config.PTS.W=W; % number of possible phases
@@ -229,9 +227,9 @@ else % PTS
     
     OFDM_config.PTS.P_data=P_data;
     
-    
+ %   OFDM_matrix_Tx_f=[OFDM_matrix_Tx_f_wo_GB(1:100,:);OFDM_matrix_Tx_f_wo_GB(101:200,:)];
     OFDM_matrix_Tx_f=ifftshift(OFDM_matrix_Tx_f,1); %  fftshift ove the columns. see comment above
-    OFDM_matrix_Tx_t=PTS_Tx(OFDM_matrix_Tx_f,OFDM_config);
+    [OFDM_matrix_Tx_t,b_opt_mat]=PTS_Tx(OFDM_matrix_Tx_f,OFDM_config);
     
 end
 

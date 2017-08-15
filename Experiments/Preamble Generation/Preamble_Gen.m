@@ -11,8 +11,8 @@ close all
 % algorithm (BFB p. 147, p.155. BLM p. 437) 2) steady state (execess error) value (BFB., p.153)
 % it conserves the properties of orthogonality under BPSK modulation
 
-N_FFT=512;
-N_GB=2*28;
+N_FFT=256;
+N_GB=28; % guard bands including the DC
 N_preamble_symbols=N_FFT-2*N_GB;
 
 %%% generating the basic subframe
@@ -64,7 +64,7 @@ while(PAPR_preamble_CE_min>4 && toc<30)
     
     %%% PAPR Calc
     index_middle=(N_FFT-2*N_GB)/2+1;
-    Preamble_stream_Tx_f=[zeros(1,N_GB),Preamble_stream_Tx(1:index_middle-1),0,Preamble_stream_Tx(index_middle:end),zeros(1,N_GB-1)];
+    Preamble_stream_Tx_f=[zeros(1,N_GB),Preamble_stream_Tx(1:index_middle-1),0,Preamble_stream_Tx(index_middle:end),zeros(1,N_GB-1)]; % adding the DC in the middle
     
     Preamble_stream_Tx_f=ifftshift(Preamble_stream_Tx_f,1); %  fftshift ove the columns. see comment above
     Preamble_stream_Tx_t=ifft(Preamble_stream_Tx_f); % the famous OFD IDFT operation
@@ -75,7 +75,7 @@ while(PAPR_preamble_CE_min>4 && toc<30)
     
     if PAPR_preamble_CE<PAPR_preamble_CE_min
         PAPR_preamble_CE_min=PAPR_preamble_CE;
-        AAA=[Preamble_stream_Tx(1:index_middle-1),0,Preamble_stream_Tx(index_middle:end)];
+        AAA=[Preamble_stream_Tx(1:index_middle-1),0,Preamble_stream_Tx(index_middle:end)]; % adding the DC in the middle
     end
     
     PAPR_preamble_CE_min=min(PAPR_preamble_CE_min,PAPR_preamble_CE);
@@ -84,7 +84,9 @@ end
 toc
 
 
-save PN_seq_512.mat AAA
+%save PN_seq_512.mat AAA
+
+save PN_seq_PTS_256.mat AAA
 
 %% Display
 figure

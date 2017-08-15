@@ -35,7 +35,7 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     %Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
     %Configuration='Impulse Response'; % signal containing impulses at each
     
-    N_symbols=1000; % number of QAM symbols in the Frame
+    N_symbols=5000; % number of QAM symbols in the Frame
     % N_symbols=45590; % number of QAM symbols in the Frame
     
     
@@ -68,69 +68,77 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
         
         %% OFDM Settings
         
-        %         %%% Config # 1 : 512 suncarriers- for long delay spreads: CP
-        %         %%% extremely long (N_FFT/4) and LS equalizer
-        %         F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)N_FFT=128;
-        %         %   F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)N_FFT=128;
-        %         N_FFT=512; % do not vary!
-        %         Npilots=6;
-        %         %Npilots=8;
-        %         Nguard_band_left=28*2; % do not vary!Nguard_band_right=Nguard_band_left-1; % do not vary!
-        %         Nguard_band_right=Nguard_band_left-1; % do not vary!
-        %          N_CP=50; % ML eqaulzier
-        %         %N_CP=128; % LS equalizer
-        %         Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
-        %         P_total=1; % total OFDM symbol (time domain) power
-        %         M=64; % QAM order
-        %         N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
-        %         N_preamble_synch=4; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
-        %         Enhancement_prmbl_CE=5.2;
-        %         Enhancement_prmbl_synch=4.1;
-        %
+%                 %%% Config # 1 : 512 suncarriers- for long delay spreads: CP
+%                 %%% extremely long (N_FFT/4) and LS equalizer
+%                 F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)N_FFT=128;
+%                 %   F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)N_FFT=128;
+%                 N_FFT=512; % do not vary!
+%                 Npilots=6;
+%                 %Npilots=8;
+%                 Nguard_band_left=28*2; % do not vary!Nguard_band_right=Nguard_band_left-1; % do not vary!
+%                 Nguard_band_right=Nguard_band_left-1; % do not vary!
+%                  N_CP=50; % ML eqaulzier
+%                 %N_CP=128; % LS equalizer
+%                 Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
+%                 P_total=1; % total OFDM symbol (time domain) power
+%                 M=64; % QAM order
+%                 N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
+%                 N_preamble_synch=4; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
+%                 Enhancement_prmbl_CE=5.2;
+%                 Enhancement_prmbl_synch=4.1;
         
+
+                
         
-        %%% Config # 2 : 802.16a. 256 subcarriers
-        F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)N_FFT=128;
-        %F_chip=2.94e3; % can be interchanged with 20e3 or any other bandwidth as long as N_FFT remains 256
-        N_FFT=256; % do not vary!
-        Npilots=6;
-        Nguard_band_left=28; % do not vary!Nguard_band_right=Nguard_band_left-1; % do not vary!
-        Nguard_band_right=Nguard_band_left-1; % do not vary!
-        %N_CP=64;
-        N_CP=50;
-        Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
-        P_total=1; % total OFDM symbol (time domain) power
-        M=64; % QAM order
-        N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
-        N_preamble_synch=8; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
-        Enhancement_prmbl_CE=4.3; %
-        Enhancement_prmbl_synch=3.2; %
+%         %%% Config # 2 : 802.16a. 256 subcarriers
+%         F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)N_FFT=128;
+%         %F_chip=2.94e3; % can be interchanged with 20e3 or any other bandwidth as long as N_FFT remains 256
+%         N_FFT=256; % do not vary!
+%         Npilots=6;
+%         Nguard_band_left=28; % do not vary!Nguard_band_right=Nguard_band_left-1; % do not vary!
+%         Nguard_band_right=Nguard_band_left-1; % do not vary!
+%         %N_CP=64;
+%         N_CP=50;
+%         Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
+%         P_total=1; % total OFDM symbol (time domain) power
+%         M=64; % QAM order
+%         N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
+%         N_preamble_synch=8; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
+%         Enhancement_prmbl_CE=4.3; %
+%         Enhancement_prmbl_synch=3.2; %
+%         
+%         PTS=1;
+%         M_PTS=8;
+%         W_PTS=4;
+%         L_PTS=4;
+%         %M=4;
         
-        PTS=0;
-        M_PTS=4;
-        W_PTS=4;
-        L_PTS=4;
+
         
         
         
         %%% Config # 3: 802.11a. 64 subcarriers
-%                    % F_chip=2.94e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
-%                     F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
-%                     N_FFT=64;
-%                     Npilots=2;
-%                     Nguard_band_left=7; %  do not vary! lower number than 6 will harm the anti aliasing filter and thus the performance
-%                     Nguard_band_right=Nguard_band_left-1; % do not vary!
-%                     N_CP=12;
-%                     Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
-%                     P_total=1; % total OFDM symbol (time domain) power
-%                     M=64; % QAM order
-%                     N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
-%                     N_preamble_synch=32; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
-%                     Enhancement_prmbl_CE=7.15; %
-%                     Enhancement_prmbl_synch=4.1; %
-        
-        
-        
+                   % F_chip=2.94e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
+                   F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
+                   N_FFT=64;
+                   Npilots=2;
+                   Nguard_band_left=7; %  do not vary! lower number than 6 will harm the anti aliasing filter and thus the performance
+                   Nguard_band_right=Nguard_band_left-1; % do not vary!
+                   N_CP=12;
+                   Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
+                   P_total=1; % total OFDM symbol (time domain) power
+                   M=64; % QAM order
+                   N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
+                   N_preamble_synch=32; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
+                   Enhancement_prmbl_CE=7.15; %
+                   Enhancement_prmbl_synch=4.1; %
+                   
+                   
+                   PTS=1;
+                   M_PTS=8;
+                   L_PTS=4;
+                   W_PTS=4;
+        %M=4;
         
         
         %%% Equalizer
@@ -165,8 +173,8 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
         %Interleave_flag=0;
         
         m_coding=M; % must be equal to the modulation depth, M. see comm.RSEncoder Help
-        t_coding=10; %  64QAM. number of assured correction (in messages per codeword terms)
-        %t_coding=4; %  16QAM. number of assured correction (in messages per codeword terms)
+        %t_coding=10; %  64QAM. number of assured correction (in messages per codeword terms)
+        t_coding=4; %  16QAM. number of assured correction (in messages per codeword terms)
         
         
         
