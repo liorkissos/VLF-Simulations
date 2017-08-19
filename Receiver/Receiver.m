@@ -737,14 +737,14 @@ for mm=1:MIMO_depth
                 
                 dummy=0.1; % a fictitious DC subcarrier. only for the sake of being compatible with LS equalizer which was designed previously
                 H_est=[H_est(1:D/2);dummy;H_est(D/2+1:D)];
-              %  H_est_mat=repmat(H_est,[1,N_frames_Rx]); %%% TEMP 24/2
+                %  H_est_mat=repmat(H_est,[1,N_frames_Rx]); %%% TEMP 24/2
                 
                 
         end
         
-       %  OFDM_matrix_Rx_f=OFDM_matrix_Rx_f./H_est_mat; % the equalization operation  %%% TEMP 24/2
-       OFDM_matrix_Rx_f_MIMO(:,:,mm)=OFDM_matrix_Rx_f;
-       H_est_MIMO(:,mm)=H_est;
+        %  OFDM_matrix_Rx_f=OFDM_matrix_Rx_f./H_est_mat; % the equalization operation  %%% TEMP 24/2
+        OFDM_matrix_Rx_f_MIMO(:,:,mm)=OFDM_matrix_Rx_f;
+        H_est_MIMO(:,mm)=H_est;
     end
     
 end % MIMO loop
@@ -756,15 +756,15 @@ if Time_sync_flag
     
     H_est_MIMO_norm=diag(H_est_MIMO*H_est_MIMO');
     W_estimator_MIMO=H_est_MIMO./repmat(H_est_MIMO_norm,[1,MIMO_depth]); % BFB, p.60, 735 (eq. 735)
-
+    
     for kk=1:N_data+1+Npilots
         OFDM_subcarrier_kk_Rx_MIMO=squeeze(OFDM_matrix_Rx_f_MIMO(kk,:,:));
         W_estimator_subcarrier_kk_MIMO=W_estimator_MIMO(kk,:);
         
         OFDM_matrix_Rx_f(kk,:)=conj(W_estimator_subcarrier_kk_MIMO)*OFDM_subcarrier_kk_Rx_MIMO.'; % BFB p.734, eq.20.75
-
+        
     end
-
+    
 end
 
 %% 12) Noise variance estimation
@@ -860,10 +860,7 @@ end
 Amp_pilots=db2pow(Amp_pilots_dB);
 P_data=P_total/(Amp_pilots*Npilots+N_data); % average power of data subcarrier
 
-
 Pilots_matrix_Tx=sqrt(Amp_pilots*P_data)*ones(Npilots,N_frames_Rx);
-
-
 
 if Frequency_sync_flag % always operational
     

@@ -176,7 +176,7 @@ R3=E3/E4; % should result in 1, aince guard bands do not add any power
 
 %% 5) IDFT or PTS
 
-if ~OFDM_config.PTS.PTS % 0= PTS
+if ~OFDM_config.PTS.PTS % PTS disabled
     %%% the IDFT mutiplies the 1st carrier with 0*n [rad] (n=time index)
     %%% and the last carrier with 2*pi*n [rad]. Since we want the 1st to be
     %%% multiplied with -pi*n and the last with +pi*n, we need to apply
@@ -205,29 +205,10 @@ if ~OFDM_config.PTS.PTS % 0= PTS
         
     end
     
-else % PTS
-    
-    %PTS_algorithm= 'Iterative_Flipping';
-    PTS_algorithm= 'Reduced_Complexity';
-
-    scrambling= 'contiguous';
-    %scrambling='interleaved';
-    
-%     M=4; % number of blocks the symbol is divided into
-%     W=4; % number of possible phases
-%     L=4; % interpolation factor. see Jiang& Wu equation 5
-    
-    OFDM_config.PTS.PTS_algorithm=PTS_algorithm;
-    OFDM_config.PTS.scrambling=scrambling;
-    
-    
-   % OFDM_config.PTS.M=M; % number of blocks the symbol is divided into
-   % OFDM_config.PTS.W=W; % number of possible phases
-   % OFDM_config.PTS.L=L; % interpolation factor. see Jiang& Wu equation 5
+else % PTS enabled
     
     OFDM_config.PTS.P_data=P_data;
     
- %   OFDM_matrix_Tx_f=[OFDM_matrix_Tx_f_wo_GB(1:100,:);OFDM_matrix_Tx_f_wo_GB(101:200,:)];
     OFDM_matrix_Tx_f=ifftshift(OFDM_matrix_Tx_f,1); %  fftshift ove the columns. see comment above
     [OFDM_matrix_Tx_t,OFDM_config.PTS.b_opt_mat]=PTS_Tx(OFDM_matrix_Tx_f,OFDM_config);
     
@@ -523,7 +504,7 @@ if test_signal_processing_flag
     f=linspace(-Fs/2,Fs/2,length(Signal_Tx));
     A=fftshift(fft(Signal_Tx_upsampled,length(f)));
     C=fftshift(fft(Signal_Tx,length(f)));
-   % plot(f/1e3,db(abs(C)))
+    % plot(f/1e3,db(abs(C)))
     plot(f/1e3,db(abs(A)),f/1e3,db(abs(C)))
     title(['Signal Tx after upsampling by ',num2str(N_upsample),''])
     xlabel('freq [kHz]')
@@ -704,7 +685,7 @@ R11=E11_1/E11_2; %
 %% 14)Differentiator Filter
 
 if Pre_emphasis_flag% in any case other than Calibration, the interpolation factor and thus filter need to be flexible in order to adapt to the variable F_chip and the maximum Fsample cnstrained by the NI 6212
-
+    
     H_diff_SPEC = fdesign.differentiator(41); % Filter order is 33.
     H_diff_flt = design(H_diff_SPEC,'firls');
     
@@ -712,9 +693,9 @@ if Pre_emphasis_flag% in any case other than Calibration, the interpolation fact
     Signal_Tx=conv(H_diff_flt.numerator,Signal_Tx,'full'); %  % conv instead of filter so as not to loose the suffix samples of the signal, that might cause loosing an actual payload frame
     Group_delay_diff=H_diff_flt.order/2;
     Group_delay_total=Group_delay_total+Group_delay_diff;
-
     
-   
+    
+    
     if test_signal_processing_flag
         
         figure(3)

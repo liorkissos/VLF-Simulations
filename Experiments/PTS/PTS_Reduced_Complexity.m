@@ -131,7 +131,7 @@ for pp=1:P % running over the stream
     PAPR_min_vec=zeros(M,1);
     PAPR_min_vec(1)=PAPR_orig(pp);
     
-    b=ones(M,1); % The phase factor vector. see page 2 bottom left. 
+    b=ones(M,1); % The phase factor vector. see page 2 bottom left.
     b_opt=ones(M,1);
     
     switch PTS_algorithm
@@ -195,7 +195,7 @@ for pp=1:P % running over the stream
                     PAPR=PAPR_calc(x_Tx,L);
                     
                     if PAPR<PAPR_min
-                        PAPR_min=PAPR;     
+                        PAPR_min=PAPR;
                         b_opt=b;
                     end
                     
@@ -230,7 +230,7 @@ for pp=1:P % running over the stream
                     
                 end % for: b indexes combinations
             end % for: b values
-
+            
     end % Switch PTS algorithms
     
     %% PTS Processing 3: IDFT and summation

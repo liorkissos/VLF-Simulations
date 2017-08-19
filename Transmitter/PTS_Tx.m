@@ -95,9 +95,10 @@ end
 Signal_orig=[];
 Signal_manip=[];
 
-%OFDM_matrix_intermediate_Tx_f=zeros(N,P);
-%OFDM_matrix_PTS_Tx_t=zeros(N,P);
-OFDM_matrix_PTS_Tx_t=cat(2,ifft(OFDM_matrix_Tx_f(:,1:N_preamble_CE),[],1),zeros(N,P-2)); % conserving the 1st 2 symbols which are the 2 preambles CE
+%%% initializing the output matrix: it is a time domain matrix,in which we do not want to modify the N_preamble_CE preambles.
+%%% thus, we apply ifft to these symbols, and concatenate them to a zero
+%%% matrix.
+OFDM_matrix_PTS_Tx_t=cat(2,ifft(OFDM_matrix_Tx_f(:,1:N_preamble_CE),[],1),zeros(N,P-2)); %
 
 b_opt_mat=zeros(M,P-N_preamble_CE);
 
@@ -110,7 +111,10 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
     
     %% Data Generation
     
-    if debug & 0
+    X_orig=OFDM_matrix_Tx_f(:,pp); % the entire matrix is ifftshifted before entering the function
+    
+    
+    if debug & 0 % enable only when wanting to generate a synthetic signal. e.g; when wanting to test a different modulation or a different symbol length
         
         data_Tx=randi(M_modulation,N,1)-1;
         
@@ -120,9 +124,9 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
         
         X_orig=ifftshift(X_orig);
         
-    else
-        
-        X_orig=OFDM_matrix_Tx_f(:,pp); % the entire matrix is ifftshifted before entering the function
+        %     else
+        %
+        %         X_orig=OFDM_matrix_Tx_f(:,pp); % the entire matrix is ifftshifted before entering the function
         
     end
     %% PAPR calculation: Pre Processing
