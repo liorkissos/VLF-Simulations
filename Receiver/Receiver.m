@@ -807,9 +807,9 @@ N_frames_Rx=N_frames_Rx-N_preamble_CE; % reflects the removal of the 2 preamble_
 
 %% IPTS
 
-if 0
+if OFDM_config.PTS.PTS
     
-    
+    [ OFDM_matrix_Rx_f ] = IPTS_Rx( OFDM_matrix_Rx_f,OFDM_config);
     
 end
 

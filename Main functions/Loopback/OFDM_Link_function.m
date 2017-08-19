@@ -35,7 +35,7 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     %Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
     %Configuration='Impulse Response'; % signal containing impulses at each
     
-    N_symbols=5000; % number of QAM symbols in the Frame
+    N_symbols=10000; % number of QAM symbols in the Frame
     % N_symbols=45590; % number of QAM symbols in the Frame
     
     
@@ -106,18 +106,10 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
 %         N_preamble_synch=8; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
 %         Enhancement_prmbl_CE=4.3; %
 %         Enhancement_prmbl_synch=3.2; %
-%         
-%         PTS=1;
-%         M_PTS=8;
-%         W_PTS=4;
-%         L_PTS=4;
-%         %M=4;
-        
 
-        
-        
-        
-        %%% Config # 3: 802.11a. 64 subcarriers
+
+
+                   %%% Config # 3: 802.11a. 64 subcarriers
                    % F_chip=2.94e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
                    F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
                    N_FFT=64;
@@ -134,13 +126,20 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
                    Enhancement_prmbl_synch=4.1; %
                    
                    
-                   PTS=1;
-                   M_PTS=8;
-                   L_PTS=4;
-                   W_PTS=4;
-        %M=4;
+                   PTS=0;
+                   if PTS
+                       M_PTS=8;
+                       L_PTS=4;
+                       W_PTS=4;
+                       Enhancement_prmbl_CE=3.5; %
+                       Enhancement_prmbl_synch=0; %
+                   else
+                       M_PTS=8;
+                       L_PTS=4;
+                       W_PTS=4;
+                   end
         
-        
+   
         %%% Equalizer
         
         %Equalizer_type='LS'
@@ -223,7 +222,7 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     %overhead symbols length
     
     
-    SNR=40;
+    SNR=400;
     
     %%%% Multipath pattern:
     %%%%% Delay_resp_vec(k)=0: the time delay at which the 1st sample enters
@@ -866,7 +865,7 @@ if nargin<1
     Testing_data.Group_delay_Tx_total=round(Testing_data.Group_delay_total);
     
     %hCCDF = comm.CCDF('PAPROutputPort',true, 'MaximumPowerLimit', 60)  ; % adapted to the maximum range of the D/A and the A/D(-10,10)
-    hCCDF = comm.CCDF('PAPROutputPort',true, 'MaximumPowerLimit', 1)  ;
+    hCCDF = comm.CCDF('PAPROutputPort',true, 'MaximumPowerLimit', 5)  ;
     [CCDFx,CCDFy,PAPR]=step(hCCDF,Signal_Tx_digital(Testing_data.Group_delay_Tx_total+1:end));
     PAPR_dB=PAPR
     

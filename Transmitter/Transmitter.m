@@ -229,7 +229,7 @@ else % PTS
     
  %   OFDM_matrix_Tx_f=[OFDM_matrix_Tx_f_wo_GB(1:100,:);OFDM_matrix_Tx_f_wo_GB(101:200,:)];
     OFDM_matrix_Tx_f=ifftshift(OFDM_matrix_Tx_f,1); %  fftshift ove the columns. see comment above
-    [OFDM_matrix_Tx_t,b_opt_mat]=PTS_Tx(OFDM_matrix_Tx_f,OFDM_config);
+    [OFDM_matrix_Tx_t,OFDM_config.PTS.b_opt_mat]=PTS_Tx(OFDM_matrix_Tx_f,OFDM_config);
     
 end
 
@@ -252,7 +252,7 @@ R5=E5/E6; %
 %%% Preamble_synch a the interpolation stage varies its PAPR by much, thus
 %%% we enhance it later.
 
-%if strcmp(Configuration,'Operational')
+
 %%% PAPR testing
 
 P_max_preamble_CE=max(conj(Signal_matrix_Tx(:,1)).*Signal_matrix_Tx(:,1));
@@ -700,7 +700,6 @@ Group_delay_total=Group_delay_total+Group_delay_inv_sinc;
 E11_1=sum(sum((abs(Signal_Tx_upconverted)).^2));
 E11_2=sum(sum((abs(Signal_Tx)).^2)); % Total OFDM block (with pilots and guard bands, but w/o CP) Energy, without the preamble_CE
 R11=E11_1/E11_2; %
-
 
 %% 14)Differentiator Filter
 
