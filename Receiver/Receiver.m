@@ -5,8 +5,8 @@ function [ Symbol_stream_Rx ] = Receiver(Signal_Rx_MIMO,Fs_ADC,OFDM_config,IF_ch
 %   Detailed explanation goes here
 
 %% Config
-test_synch_channel_flag=0; % test only synchronization, impulse response and channel estimation
 %test_synch_channel_flag=1; % test only synchronization, impulse response and channel estimation
+test_synch_channel_flag=0; % test only synchronization, impulse response and channel estimation
 
 test_signal_processing_flag=0;
 %test_signal_processing_flag=1;

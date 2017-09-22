@@ -1,7 +1,7 @@
-Ver 5.1: 
+Ver 6.0:
 
-MIMO configuration with HW in the loop.
-Working both in loopback and in 2 seperate PC's configuration
+
+PAPR reductio technique implemented. tested on SW and HW loopbanck. not working on seperate PC's. PTS coeficients transferred "ilegaly" , i.e; not theough the link
 
 
 
