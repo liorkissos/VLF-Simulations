@@ -148,7 +148,7 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
         
     end
     
-    %% PTS Processing 1:Tx Symbol splitting
+    %% PTS Processing 1:Tx Symbol division into sub blocks
     
     X_subs_mat=zeros(N,M);
     
@@ -170,10 +170,13 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
             
     end
     
+    
+    %% PTS Processing 2: IDFT upon the sub-blocks
+    
     x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X. see Han& Lee fig. 1
     
     
-    %% PTS Processing 2: Phase optimization: see PAPR Reduction of OFDM Signals Using a Reduced Complexity PTS Technique, Hee Han& Hong Lee
+    %% PTS Processing 3: Phase optimization: see PAPR Reduction of OFDM Signals Using a Reduced Complexity PTS Technique, Hee Han& Hong Lee
     %%% the technique: 1) we divide a block into M subsets. 2) we multiply
     %%% subset # 1 with 1. 2) with each of the follwing M-1 subsets (index kk) we operate as
     %%% follows: We look for an optimum complex factor to minimize the total
@@ -287,36 +290,36 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
             
     end % Switch PTS algorithms
     
-    %% scaling to required power
+    
+        %% PTS Processing 4: Coeffieicients multiplication placing the PTS coefficients in their place
+%     %%%% the chosen places are the ones are the exteremeties of the symbol (before ifftshift)
+%     %%%% after ifftshift, they are placed elsewhere (the right one). those
+%     %%%% M places normally belong to data subcarriers, so in fact we
+%     %%%% overwrite M data subcarriers
+%     
+%     %%% Do not Erase!! needed in case we want to
+%     b_opt=b_opt*(sqrt(P_data)/sqrt(mean(b_opt.*conj(b_opt)))); %  enforcement of the required average power. derived from the P_total parameter
+%     
+%         X_intermediate=X_orig;
+%     
+%         ind_left=OFDM_config.N_FFT/2-(OFDM_config.Nguard_band_right+1); % index of the 1st data subcarrier left of the pilot after ifftshift
+%         ind_right=ind_left+1+OFDM_config.Nguard_band_left+OFDM_config.Nguard_band_right+1+1; % index of the 1st data subcarrier right of the pilot after ifftshift
+%     
+%         X_intermediate(ind_left-M/2+1:ind_left)=b_opt(1:M/2);
+%         X_intermediate(ind_right:ind_right+M/2-1)=b_opt(M/2+1:M);
+%     
+%         OFDM_matrix_intermediate_Tx_f(:,pp)=X_intermediate;
+%     
+%      %   error('does not work well. b_opt coeffs need to be added differently. maybe another symbol')
+     
+    
+    %% PTS Processing 5: Coeffieicients multiplication
     
     x_Tx_mat=x_subs_mat*diag(b_opt);
     OFDM_matrix_PTS_Tx_t(:,pp)=sum(x_Tx_mat,2);
     
     b_opt_mat(:,pp-N_preamble_CE)=b_opt; %saving the coefficients for  their applicaion later on. Doing that before scaling the power so as to not affect the power of the signal, since b_opt terms have a power of 1
-    
-    %%%% Do not Erase!! needed in case we want to
-    % b_opt=b_opt*(sqrt(P_data)/sqrt(mean(b_opt.*conj(b_opt)))); %  enforcement of the required average power. derived from the P_total parameter
-    
-    
-    %% placing the PTS coefficients in their place
-    %%%% the chosen places are the ones are the exteremeties of the symbol (before ifftshift)
-    %%%% after ifftshift, they are placed elsewhere (the right one). those
-    %%%% M places normally belong to data subcarriers, so in fact we
-    %%%% overwrite M data subcarriers
-    
-    %     X_intermediate=X_orig;
-    %
-    %     ind_left=OFDM_config.N_FFT/2-(OFDM_config.Nguard_band_right+1); % index of the 1st data subcarrier left of the pilot after ifftshift
-    %     ind_right=ind_left+1+OFDM_config.Nguard_band_left+OFDM_config.Nguard_band_right+1+1; % index of the 1st data subcarrier right of the pilot after ifftshift
-    %
-    %     X_intermediate(ind_left-M/2+1:ind_left)=b_opt(1:M/2);
-    %     X_intermediate(ind_right:ind_right+M/2-1)=b_opt(M/2+1:M);
-    %
-    %     OFDM_matrix_intermediate_Tx_f(:,pp)=X_intermediate;
-    %
-    %     error('does not work well. b_opt coeffs need to be added differently. maybe another symbol')
-    
-    
+
     
     if debug
         

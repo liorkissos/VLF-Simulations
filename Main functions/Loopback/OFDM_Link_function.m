@@ -36,11 +36,11 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     %Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
     %Configuration='Impulse Response'; % signal containing impulses at each
     
-    N_symbols=5000; % number of QAM symbols in the Frame
+    N_symbols=10000; % number of QAM symbols in the Frame
     % N_symbols=45590; % number of QAM symbols in the Frame
     
     %%% PTS
-    PTS=1 % PTS enabling flag
+    PTS=0 % PTS enabling flag
 %     M_PTS=16; %number of divisions of the N_FFT long block 
 %     L_PTS=4; % upsamling rate of the PAPR teting during the algorithm execution
 %     W_PTS=8; % number of phase factors. e.g; for W_PTS=4, it is 1,j,-1,-j
@@ -798,7 +798,7 @@ if test_signal_processing_flag
     xlabel('[msec]')
 end
 
-%% TEMP
+%% Audio
 
 %%%%%
 % [Signal_Rx,Fs]=audioread('Alon1_Rx_2.wav');
@@ -843,8 +843,6 @@ end
 t1_rx=clock;
 [ Symbol_stream_Rx ] = Receiver(Signal_Rx_MIMO,Fs,OFDM_config,IF_chain_config,Simulation_config,Testing_data );
 e_Rx=etime(clock,t1_rx);
-
-
 
 %% QAM demodulation
 [ data_DeCoded_Rx,data_Rx,t2_rx ] = DeModulator(Symbol_stream_Rx,Coding_config,OFDM_config,Simulation_config,Audio_config );
