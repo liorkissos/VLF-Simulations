@@ -237,12 +237,26 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
             
             ind_mat=combnk(1:M,r);% we check the PAPR when r terms within b vector change. ind_mat contains the possible indexes of those terms
             
+            b=ones(M,1); % at each symbol we begin with the ones vector as PTS coefficients reference vector
+            b_opt=ones(M,1);
+            
+            
+            c=combnk(repmat(exp(j*2*pi*(0:W-1)/W),1,2),r); % each of the r terms within b has one of the values within exp(j*2*pi*(0:W-1)/W), we repmat them to enable combination of 2 identical terms, such as 1,1
+            c=sort(c,2); %sorting is a necessary condition for performing unique function
+            c=unique(c,'rows'); % we remove the duplicate terms in c
+            
             for ii=1:size(ind_mat,1) % running on the matrix rows
                 
-                b=ones(M,1);
-                c=combnk(exp(j*2*pi*(0:W-1)/W),r); % each of the r terms within b has one of the values within exp(j*2*pi*(0:W-1)/W)
+            %    b=ones(M,1);
+             %   b=b_opt;
+              %  c=combnk(exp(j*2*pi*(0:W-1)/W),r); % each of the r terms within b has one of the values within exp(j*2*pi*(0:W-1)/W)
                 
                 for jj=1:length(c)
+                    
+                     if  isequal(b(ind_mat(ii,:)),c(jj,:).')  % we skip the cases where new phase factors are identical to the current ones
+                       % c(jj,:)
+                        continue
+                    end
                     
                     b(ind_mat(ii,:))=c(jj,:); % the r terms within b are assigned r values
                     
@@ -251,9 +265,11 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
                     
                     PAPR=PAPR_calc(x_Tx,L);
                     
-                    if PAPR<PAPR_min
+                    if PAPR<PAPR_min % update the PAPR_min to the new one and move with the gradient towards the descending direction
                         PAPR_min=PAPR;
                         b_opt=b;
+                    else
+                        b=b_opt; % if the change is not in the gradient descet direction, stay where the last known optimum is
                     end
                     
                 end % for: b indexes combinations
@@ -264,14 +280,22 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
             %%%% second iteration (reminder r2/I2 option, namely I2= 2 iterations). initial b is the one obtained on
             %%%% previous iteration
             
-            b_1st_iter=b_opt; % initial b vecotr on 2nd iteration is the optimum of the previous one
+            %b_1st_iter=b_opt; % initial b vecotr on 2nd iteration is the optimum of the previous one
+            
+            b=b_opt;  % initial b vecotr on 2nd iteration is the optimum of the previous one
             
             for ii=1:size(ind_mat,1) % running on the matrix rows
                 
-                b=b_1st_iter;
-                c=combnk(exp(j*2*pi*(0:W-1)/W),r);
+%                 b=b_1st_iter;
+%                 c=combnk(exp(j*2*pi*(0:W-1)/W),r);
                 
-                for jj=1:length(c)
+                for jj=1:size(c,1)
+                    
+                    if  isequal(b(ind_mat(ii,:)),c(jj,:).')  % we skip the cases where new phase factors are identical to the current ones
+                        continue
+                    end
+                    
+                    
                     
                     b(ind_mat(ii,:))=c(jj,:);
                     
@@ -283,6 +307,8 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
                     if PAPR<PAPR_min
                         PAPR_min=PAPR;
                         b_opt=b;
+                    else
+                        b=b_opt;
                     end
                     
                 end % for: b indexes combinations
@@ -337,6 +363,8 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
         
     end
     
+    PAPR_min_stat_vec(pp-N_preamble_CE)=PAPR_min;
+    
 end % for running over symbols
 
 
@@ -387,6 +415,14 @@ end % for running over symbols
 % end
 
 %% Debug
+
+% PAPR_min_stat_vec_new=PAPR_min_stat_vec;
+% histogram(PAPR_min_stat_vec,100)
+% load('PAPR_min_stat_vec')
+% 
+% ecdf(PAPR_min_stat_vec)
+% hold on
+% ecdf(PAPR_min_stat_vec_new)
 
 if debug
     

@@ -37,6 +37,9 @@ N_symbols=10000; % number of QAM symbols in the Frame
 % N_symbols=45590; % number of QAM symbols in the Frame
 
 
+PTS=0 % PTS enabling flag
+warning('PTS should not be operational on seperate PC s, but this option (PTS DISabled!) was not debugged')
+
 %Voice_flag=1;
 Voice_flag=0;
 

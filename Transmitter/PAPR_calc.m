@@ -15,11 +15,16 @@ x_interp=interp(x,L);
 
 
 P_max=max(x_interp.*conj(x_interp));
-P_avg=mean(x_interp.*conj(x_interp));
 
-PAPR=db(P_max/P_avg,'power');
+P_avg=(x_interp'*x_interp)/length(x_interp);
 
-P_avg_dB=db(P_avg,'power');
+PAPR=10*log10(P_max/P_avg);
+
+
+if nargout>1
+    P_avg_dB=db(P_avg,'power');
+end
+
 
 
 end

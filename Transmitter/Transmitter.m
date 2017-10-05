@@ -718,6 +718,7 @@ OFDM_matrix_Tx_f_no_CP_no_Preamble=OFDM_matrix_Tx_f;
 Testing_data.Group_delay_total=Group_delay_total;
 Testing_data.Group_delay_interp=Group_delay_interp;
 Testing_data.OFDM_matrix_Tx_f_no_CP_no_Preamble=OFDM_matrix_Tx_f_no_CP_no_Preamble;
+Testing_data.Data_start_index=round((limit_high_high+N_preamble_CE*N_FFT*N_upsample)*1.1); % assured index of the data stream start; assured to not contain group delay or preambles. not accurate, of course
 
 OFDM_config.OFDM_Ref_symbol_Tx_f=OFDM_Ref_symbol_Tx_f;
 OFDM_config.Pilots_matrix_Tx=Pilots_matrix_Tx;

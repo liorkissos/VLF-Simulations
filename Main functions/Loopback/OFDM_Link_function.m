@@ -36,11 +36,11 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     %Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
     %Configuration='Impulse Response'; % signal containing impulses at each
     
-    N_symbols=10000; % number of QAM symbols in the Frame
+    N_symbols=30000; % number of QAM symbols in the Frame
     % N_symbols=45590; % number of QAM symbols in the Frame
     
     %%% PTS
-    PTS=0 % PTS enabling flag
+    PTS=1 % PTS enabling flag
 %     M_PTS=16; %number of divisions of the N_FFT long block 
 %     L_PTS=4; % upsamling rate of the PAPR teting during the algorithm execution
 %     W_PTS=8; % number of phase factors. e.g; for W_PTS=4, it is 1,j,-1,-j
@@ -906,8 +906,11 @@ if nargin<1
     
     %hCCDF = comm.CCDF('PAPROutputPort',true, 'MaximumPowerLimit', 60)  ; % adapted to the maximum range of the D/A and the A/D(-10,10)
     hCCDF = comm.CCDF('PAPROutputPort',true, 'MaximumPowerLimit', 5)  ;
-    [CCDFx,CCDFy,PAPR]=step(hCCDF,Signal_Tx_digital(Testing_data.Group_delay_Tx_total+1:end));
+   % hCCDF1=clone(hCCDF);
+  %  [CCDFx,CCDFy,PAPR]=step(hCCDF,Signal_Tx_digital(Testing_data.Group_delay_Tx_total+1:end));
+    [CCDFx,CCDFy,PAPR]=step(hCCDF,Signal_Tx_digital(Testing_data.Data_start_index+1:end));
     PAPR_dB=PAPR
+   % PAPR1
     
     figure
     plot(hCCDF)

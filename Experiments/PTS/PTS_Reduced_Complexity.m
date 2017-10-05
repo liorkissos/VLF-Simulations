@@ -8,7 +8,7 @@ debug=0;
 
 %% User defined parameters
 
-P=1000; % number of symbols in the stream
+P=3000; % number of OFDM symbols ( super symbols) in the stream
 
 reference_cfg=1;
 
@@ -29,7 +29,7 @@ hDemod = comm.RectangularQAMDemodulator('ModulationOrder',Modulation,'Normalizat
 M=8; % number of blocks the symbol is divided into
 W=4; % number of possible phases
 L=4; % interpolation factor. see Jiang& Wu equation 5
-
+r=2;
 
 if reference_cfg
     N=2^6; % length of symbol
@@ -56,8 +56,9 @@ end
 %% Algorithm execution
 %%%%%%%%%%%%%%%%%%%%%%%%
 
-Signal_orig=[];
-Signal_manip=[];
+
+Signal_orig=zeros(N*P,1);
+Signal_manip=zeros(N*P,1);
 
 PAPR_orig=zeros(P,1);
 
@@ -180,23 +181,39 @@ for pp=1:P % running over the stream
             
             ind_mat=combnk(1:M,r);% we check the PAPR when r terms within b vector change. ind_mat contains the possible indexes of those terms
             
-            for ii=1:size(ind_mat,1) % running on the matrix rows
-                
-                b=ones(M,1);
-                c=combnk(exp(j*2*pi*(0:W-1)/W),r); % each of the r terms within b has one of the values within exp(j*2*pi*(0:W-1)/W)
-                
-                for jj=1:length(c)
+            
+            b=ones(M,1); % at each symbol we begin with the ones vector as PTS coefficients reference vector
+            b_opt=ones(M,1);
+            
+            
+            c=combnk(repmat(exp(j*2*pi*(0:W-1)/W),1,2),r); % each of the r terms within b has one of the values within exp(j*2*pi*(0:W-1)/W), we repmat them to enable combination of 2 identical terms, such as 1,1
+            c=sort(c,2); %sorting is a necessary condition for performing unique function
+            c=unique(c,'rows'); % we remove the duplicate terms in c
+            
+            
+            for ii=1:size(ind_mat,1) % running along  the matrix columns; the different indexes of b terms
+
+                for jj=1:size(c,1) % running across all the b vector possibilities that are r Hamming distant from initial b (b=ones(M,1)). r Hamming distant between 2 vectors= r terms different between the 2 vectors
                     
-                    b(ind_mat(ii,:))=c(jj,:); % the r terms within b are assigned r values
+                    
+                    if  isequal(b(ind_mat(ii,:)),c(jj,:).')  % we skip the cases where new phase factors are identical to the current ones
+                       % c(jj,:)
+                        continue
+                    end
+                    
+                    
+                    b(ind_mat(ii,:))=c(jj,:); % the r terms within b are assigned r values. we thus create a new vector b, different from original in r terms; a Hamming distance of r
                     
                     x_Tx_mat=x_subs_mat*diag(b); % multiplication of every column of x_Tx_mat by a scalar; a term in  vector
                     x_Tx=sum(x_Tx_mat,2);
                     
                     PAPR=PAPR_calc(x_Tx,L);
                     
-                    if PAPR<PAPR_min
+                    if PAPR<PAPR_min % update the PAPR_min to the new one and move with the gradient towards the descending direction
                         PAPR_min=PAPR;
                         b_opt=b;
+                    else
+                        b=b_opt; % if the change is not in the gradient descet direction, stay where the last known optimum is
                     end
                     
                 end % for: b indexes combinations
@@ -207,14 +224,18 @@ for pp=1:P % running over the stream
             %%%% second iteration (reminder r2/I2 option, namely I2= 2 iterations). initial b is the one obtained on
             %%%% previous iteration
             
-            b_1st_iter=b_opt; % initial b vecotr on 2nd iteration is the optimum of the previous one
+            b=b_opt;  % initial b vecotr on 2nd iteration is the optimum of the previous one
             
             for ii=1:size(ind_mat,1) % running on the matrix rows
                 
-                b=b_1st_iter;
-                c=combnk(exp(j*2*pi*(0:W-1)/W),r);
+
                 
-                for jj=1:length(c)
+                for jj=1:size(c,1)
+                    
+                    
+                    if  isequal(b(ind_mat(ii,:)),c(jj,:).')  % we skip the cases where new phase factors are identical to the current ones
+                        continue
+                    end
                     
                     b(ind_mat(ii,:))=c(jj,:);
                     
@@ -226,6 +247,8 @@ for pp=1:P % running over the stream
                     if PAPR<PAPR_min
                         PAPR_min=PAPR;
                         b_opt=b;
+                    else
+                        b=b_opt;
                     end
                     
                 end % for: b indexes combinations
@@ -233,22 +256,23 @@ for pp=1:P % running over the stream
             
     end % Switch PTS algorithms
     
-    %% PTS Processing 3: IDFT and summation
+    %% PTS Processing 3: multiplication by PTS factors and summation
     
-    %x_subs_mat=ifft(X_subs_mat);
+
     x_Tx_mat=x_subs_mat*diag(b_opt);
     x_Tx=sum(x_Tx_mat,2);
     
     %% PAPR measurement: Post Processing
     
-    PAPR_manip(pp)=PAPR_calc(x_Tx,L);
+    PAPR_manip(pp)=PAPR_calc(x_Tx,4);
     PAPR_reduction(pp)=PAPR_orig(pp)-PAPR_manip(pp);
     
     %% Signal saving
     
-    Signal_orig=[Signal_orig;x_Tx_orig];
-    Signal_manip=[Signal_manip;x_Tx];
+    Signal_orig((pp-1)*N+1:pp*N)=x_Tx_orig;
+    Signal_manip((pp-1)*N+1:pp*N)=x_Tx;
     
+
 end
 
 %% Analysis (of the whole signal)
