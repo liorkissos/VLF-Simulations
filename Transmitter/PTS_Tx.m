@@ -43,7 +43,7 @@ reference_cfg=0;
 
 %% User defined params
 
-PTS_algorithm=OFDM_config.PTS.PTS_algorithm;
+PTS_Algorithm=OFDM_config.PTS.PTS_Algorithm;
 scrambling=OFDM_config.PTS.scrambling;
 
 M=OFDM_config.PTS.M_PTS; % number of blocks the symbol is divided into
@@ -191,9 +191,9 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
     b=ones(M,1); % The phase factor vector. see page 2 bottom left.
     b_opt=ones(M,1);
     
-    switch PTS_algorithm
+    switch PTS_Algorithm
         
-        case 'Iterative_Flipping'
+        case 'Iterative Flipping'
             
             %   x_subs_mat=ifft(X_subs_mat); % IDFT over the zero padded subsets of X
             
@@ -230,8 +230,89 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
                 PAPR_min_vec(kk)=PAPR_min;
                 
             end
+        case 'Reduced Complexity-Article' % Han& Lee, section C, page 3 upper left. r2/I2 option
             
-        case 'Reduced_Complexity' % Han& Lee, section C, page 3 upper left. r2/I2 option
+            PAPR_min=PAPR_orig(pp); % PAPR is referenced to the one obtained with no signal processing
+            
+            ind_mat=combnk(1:M,r);% we check the PAPR when r terms within b vector change. ind_mat contains the possible indexes of those terms
+            
+            
+            b=ones(M,1); % at each symbol we begin with the ones vector as PTS coefficients reference vector
+            b_opt=ones(M,1);
+            
+            
+            c=combnk(repmat(exp(j*2*pi*(0:W-1)/W),1,2),r); % each of the r terms within b has one of the values within exp(j*2*pi*(0:W-1)/W), we repmat them to enable combination of 2 identical terms, such as 1,1
+            c=sort(c,2); %sorting is a necessary condition for performing unique function
+            c=unique(c,'rows'); % we remove the duplicate terms in c
+            
+            %%% The following stacked for loops are in fact
+            
+            
+            for ii=1:size(ind_mat,1) % running along  the matrix columns; the different indexes of b terms
+                
+                for jj=1:size(c,1) % running across all the b vector possibilities that are r Hamming distant from initial b (b=ones(M,1)). r Hamming distant between 2 vectors= r terms different between the 2 vectors
+                    
+                    b=ones(M,1); % we return to 0 at every iteration
+                    
+                    if  isequal(b(ind_mat(ii,:)),c(jj,:).')  % we skip the cases where new phase factors are identical to the current ones
+                        % c(jj,:)
+                        continue
+                    end
+                    
+                    b(ind_mat(ii,:))=c(jj,:); % the r terms within b are assigned r values. we thus create a new vector b, different from original in r terms; a Hamming distance of r
+                    
+                    x_Tx_mat=x_subs_mat*diag(b); % multiplication of every column of x_Tx_mat by a scalar; a term in  vector
+                    x_Tx=sum(x_Tx_mat,2);
+                    
+                    PAPR=PAPR_calc(x_Tx,L);
+                    
+                    if PAPR<PAPR_min % update the PAPR_min to the new one and move with the gradient towards the descending direction
+                        PAPR_min=PAPR;
+                        b_opt=b;
+                        %                     else
+                        %                         b=b_opt; % if the change is not in the gradient descet direction, stay where the last known optimum is
+                    end
+                    
+                end % for: b indexes combinations
+            end % for: b values
+            
+            
+            
+            %%%% second iteration (reminder r2/I2 option, namely I2= 2 iterations). initial b is the one obtained on
+            %%%% previous iteration
+            
+            b_opt_1st=b_opt;
+            
+            b=b_opt_1st;  % initial b vecotr on 2nd iteration is the optimum of the previous one
+            
+            for ii=1:size(ind_mat,1) % running on the matrix rows
+                
+                for jj=1:size(c,1)
+                    
+                    b=b_opt_1st;
+                    
+                    if  isequal(b(ind_mat(ii,:)),c(jj,:).')  % we skip the cases where new phase factors are identical to the current ones
+                        continue
+                    end
+                    
+                    b(ind_mat(ii,:))=c(jj,:);
+                    
+                    x_Tx_mat=x_subs_mat*diag(b); % multiplication of every column of x_Tx_mat by a scalar; a term in  vector
+                    x_Tx=sum(x_Tx_mat,2);
+                    
+                    PAPR=PAPR_calc(x_Tx,L);
+                    
+                    if PAPR<PAPR_min
+                        PAPR_min=PAPR;
+                        b_opt=b;
+                        %                     else
+                        %                         b=b_opt;
+                    end
+                    
+                end % for: b indexes combinations
+            end % for: b values
+            
+        case 'Reduced Complexity-mine' % Han& Lee, section C, page 3 upper left. r2/I2 option
             
             PAPR_min=PAPR_orig(pp); % PAPR is referenced to the one obtained with no signal processing
             
@@ -247,14 +328,14 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
             
             for ii=1:size(ind_mat,1) % running on the matrix rows
                 
-            %    b=ones(M,1);
-             %   b=b_opt;
-              %  c=combnk(exp(j*2*pi*(0:W-1)/W),r); % each of the r terms within b has one of the values within exp(j*2*pi*(0:W-1)/W)
+                %    b=ones(M,1);
+                %   b=b_opt;
+                %  c=combnk(exp(j*2*pi*(0:W-1)/W),r); % each of the r terms within b has one of the values within exp(j*2*pi*(0:W-1)/W)
                 
                 for jj=1:length(c)
                     
-                     if  isequal(b(ind_mat(ii,:)),c(jj,:).')  % we skip the cases where new phase factors are identical to the current ones
-                       % c(jj,:)
+                    if  isequal(b(ind_mat(ii,:)),c(jj,:).')  % we skip the cases where new phase factors are identical to the current ones
+                        % c(jj,:)
                         continue
                     end
                     
@@ -286,8 +367,8 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
             
             for ii=1:size(ind_mat,1) % running on the matrix rows
                 
-%                 b=b_1st_iter;
-%                 c=combnk(exp(j*2*pi*(0:W-1)/W),r);
+                %                 b=b_1st_iter;
+                %                 c=combnk(exp(j*2*pi*(0:W-1)/W),r);
                 
                 for jj=1:size(c,1)
                     
@@ -317,27 +398,27 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
     end % Switch PTS algorithms
     
     
-        %% PTS Processing 4: Coeffieicients multiplication placing the PTS coefficients in their place
-%     %%%% the chosen places are the ones are the exteremeties of the symbol (before ifftshift)
-%     %%%% after ifftshift, they are placed elsewhere (the right one). those
-%     %%%% M places normally belong to data subcarriers, so in fact we
-%     %%%% overwrite M data subcarriers
-%     
-%     %%% Do not Erase!! needed in case we want to
-%     b_opt=b_opt*(sqrt(P_data)/sqrt(mean(b_opt.*conj(b_opt)))); %  enforcement of the required average power. derived from the P_total parameter
-%     
-%         X_intermediate=X_orig;
-%     
-%         ind_left=OFDM_config.N_FFT/2-(OFDM_config.Nguard_band_right+1); % index of the 1st data subcarrier left of the pilot after ifftshift
-%         ind_right=ind_left+1+OFDM_config.Nguard_band_left+OFDM_config.Nguard_band_right+1+1; % index of the 1st data subcarrier right of the pilot after ifftshift
-%     
-%         X_intermediate(ind_left-M/2+1:ind_left)=b_opt(1:M/2);
-%         X_intermediate(ind_right:ind_right+M/2-1)=b_opt(M/2+1:M);
-%     
-%         OFDM_matrix_intermediate_Tx_f(:,pp)=X_intermediate;
-%     
-%      %   error('does not work well. b_opt coeffs need to be added differently. maybe another symbol')
-     
+    %% PTS Processing 4: Coeffieicients multiplication placing the PTS coefficients in their place
+    %     %%%% the chosen places are the ones are the exteremeties of the symbol (before ifftshift)
+    %     %%%% after ifftshift, they are placed elsewhere (the right one). those
+    %     %%%% M places normally belong to data subcarriers, so in fact we
+    %     %%%% overwrite M data subcarriers
+    %
+    %     %%% Do not Erase!! needed in case we want to
+    %     b_opt=b_opt*(sqrt(P_data)/sqrt(mean(b_opt.*conj(b_opt)))); %  enforcement of the required average power. derived from the P_total parameter
+    %
+    %         X_intermediate=X_orig;
+    %
+    %         ind_left=OFDM_config.N_FFT/2-(OFDM_config.Nguard_band_right+1); % index of the 1st data subcarrier left of the pilot after ifftshift
+    %         ind_right=ind_left+1+OFDM_config.Nguard_band_left+OFDM_config.Nguard_band_right+1+1; % index of the 1st data subcarrier right of the pilot after ifftshift
+    %
+    %         X_intermediate(ind_left-M/2+1:ind_left)=b_opt(1:M/2);
+    %         X_intermediate(ind_right:ind_right+M/2-1)=b_opt(M/2+1:M);
+    %
+    %         OFDM_matrix_intermediate_Tx_f(:,pp)=X_intermediate;
+    %
+    %      %   error('does not work well. b_opt coeffs need to be added differently. maybe another symbol')
+    
     
     %% PTS Processing 5: Coeffieicients multiplication
     
@@ -345,7 +426,7 @@ for pp=N_preamble_CE+1:P % running over the Tx matrix, excluding the 1st& 2nd th
     OFDM_matrix_PTS_Tx_t(:,pp)=sum(x_Tx_mat,2);
     
     b_opt_mat(:,pp-N_preamble_CE)=b_opt; %saving the coefficients for  their applicaion later on. Doing that before scaling the power so as to not affect the power of the signal, since b_opt terms have a power of 1
-
+    
     
     if debug
         
@@ -419,7 +500,7 @@ end % for running over symbols
 % PAPR_min_stat_vec_new=PAPR_min_stat_vec;
 % histogram(PAPR_min_stat_vec,100)
 % load('PAPR_min_stat_vec')
-% 
+%
 % ecdf(PAPR_min_stat_vec)
 % hold on
 % ecdf(PAPR_min_stat_vec_new)
