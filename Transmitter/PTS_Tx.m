@@ -17,7 +17,7 @@ debug=0;
 P=size(OFDM_matrix_Tx_f,2); % number of OFDM symbols in the stream=columns in the OFDM matrix
 N=size(OFDM_matrix_Tx_f,1); % number of QAM symbols in the OFDM symbol=rows in the OFDM matrix
 
-r=2; % Hamming search radius of the Reduced Complexity PTS
+%r=2; % Hamming search radius of the Reduced Complexity PTS
 
 reference_cfg=0;
 
@@ -49,6 +49,7 @@ scrambling=OFDM_config.PTS.scrambling;
 M=OFDM_config.PTS.M_PTS; % number of blocks the symbol is divided into
 W=OFDM_config.PTS.W_PTS; % number of possible phases
 L=OFDM_config.PTS.L_PTS; % interpolation factor. see Jiang& Wu equation 5
+r=OFDM_config.PTS.r_PTS;
 
 P_data=OFDM_config.PTS.P_data; %required power from
 N_preamble_CE=OFDM_config.N_preamble_CE;

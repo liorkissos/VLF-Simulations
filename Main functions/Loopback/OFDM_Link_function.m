@@ -36,7 +36,7 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     %Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
     %Configuration='Impulse Response'; % signal containing impulses at each
     
-    N_symbols=30000; % number of QAM symbols in the Frame
+    N_symbols=20000; % number of QAM symbols in the Frame
     % N_symbols=45590; % number of QAM symbols in the Frame
     
     %%% PTS
@@ -48,16 +48,17 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     M_PTS=8; %number of divisions of the N_FFT long block
     L_PTS=4; % upsamling rate of the PAPR teting during the algorithm execution
     W_PTS=4; % number of phase factors. e.g; for W_PTS=4, it is 1,j,-1,-j
+    r_PTS=2; % PTS Reduced complexity algorithm; hamming length of optimization search
     
     %     PTS_algorithm= 'Reduced_Complexity';
     %     %PTS_algorithm= 'Iterative_Flipping';
     
-    PTS_Algorithm= 'Iterative Flipping';
-    %PTS_Algorithm= 'Reduced Complexity-mine';
+   % PTS_Algorithm= 'Iterative Flipping';
+    PTS_Algorithm= 'Reduced Complexity-mine';
    % PTS_Algorithm= 'Reduced Complexity-Article';
     
-    scrambling= 'contiguous';
-    %scrambling='interleaved';
+    %scrambling= 'contiguous';
+    scrambling='interleaved';
     
     %Voice_flag=1;
     Voice_flag=0;
@@ -628,6 +629,7 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
         OFDM_config.PTS.M_PTS=M_PTS;
         OFDM_config.PTS.W_PTS=W_PTS;
         OFDM_config.PTS.L_PTS=L_PTS;
+        OFDM_config.PTS.r_PTS=r_PTS;
         OFDM_config.PTS.PTS_Algorithm=PTS_Algorithm;
         OFDM_config.PTS.scrambling=scrambling;
     end
@@ -918,11 +920,20 @@ if nargin<1
     
     figure
     plot(hCCDF)
-    title(gca,['CCDF Plot. PAPR=',num2str(PAPR_dB),'[dB]'])
+    if  PTS %strcmp(PTS_Algorithm,'Iterative Flipping')
+        title({['CCDF curve  '],...
+            ['Modulation=',num2str(M),'-QAM. '],['N fft=',num2str(N_FFT),'. F chip=',num2str(F_chip/1e3),'[kHz]'],...
+            ['PTS ON. Algorithm= ',PTS_Algorithm,''],['PTS Parameters: M=',num2str(M_PTS),'. W=',num2str(W_PTS),'. r=2']})
+
+    else
+        title({['PAPR Vs. OFDM Symbol Index. Algorithm= ',PTS_Algorithm,' '],...
+              ['Modulation=',num2str(M),'-QAM. '],['N fft=',num2str(N_FFT),'. F chip=',num2str(F_chip/1e3),'[kHz]']})
+
+        %    ['average PAPR reduction=',num2str(db(mean(db2pow(PAPR_reduction)),'power')),'[dB]']})
+    end
+   % title(gca,['CCDF Plot. PAPR=',num2str(PAPR_dB),'[dB]'])
     set(gcf,'windowstyle','docked')
-    
-    
-    
+
     %%%H=dsp.SpectrumAnalyzer('SampleRate',Fs_air,'FrequencySpan','Span and center frequency','CenterFrequency',F_if,'Span',F_chip*4,'FrequencyResolutionMethod','RBW','RBWSource','Property','RBW',0.1,'ShowGrid',true,'YLimits',[-250,-50]);
     % H=dsp.SpectrumAnalyzer('SampleRate',Fs,'FrequencySpan','Start and stop frequencies','StartFrequency',max(0,F_if-2*F_chip),'StopFrequency',min(Fs/2,F_if+F_chip*2),'FrequencyResolutionMethod','RBW','RBWSource','Property','RBW',0.1,'ShowGrid',true,'YLimits',[-250,-50]);
     % step(H,[Signal_Tx_digital(Testing_data.Group_delay_Tx_total+1:end) Signal_Rx_digital(Testing_data.Group_delay_Tx_total+1:end)])
@@ -968,24 +979,30 @@ if nargin<1
     xlabel('time [msec]');ylabel('[dB]')
     ylim([-15,-5])
     
-    
-    
-    
     figure
     set(gcf,'windowstyle','docked')
-    subplot(2,1,1)
+   % subplot(2,1,1)
     plot(t_Tx/1e-3,Signal_Tx_digital)
     xlabel('[msec]');grid on;grid minor
-    title(['Tx Signal at AFE interface.T preamble synch=',num2str(T_preamble_synch/1e-3),'[msec]. T preamble CE=',num2str(T_preamble_CE/1e-3),'[msec].'])
+    ylabel('Amplitude [volt]')
+   % title(['Tx Signal at AFE interface.T preamble synch=',num2str(T_preamble_synch/1e-3),'[msec]. T preamble CE=',num2str(T_preamble_CE/1e-3),'[msec].'])
+%           title({['Tx Signal at AFE interface'],['T preamble synch=',num2str(T_preamble_synch/1e-3),'[msec]. T preamble CE=',num2str(T_preamble_CE/1e-3),'[msec].'],...
+%               ['PTS Algorithm= ',PTS_Algorithm,' '],...
+%               ['Modulation=',num2str(M),'-QAM. '],['N fft=',num2str(N_FFT),'. F chip=',num2str(F_chip/1e3),'[kHz]']})
+% %           
+%              title({['Tx Signal at AFE interface'],['T preamble synch=',num2str(T_preamble_synch/1e-3),'[msec]. T preamble CE=',num2str(T_preamble_CE/1e-3),'[msec].'],...
+%               ['Modulation=',num2str(M),'-QAM. '],['N fft=',num2str(N_FFT),'. F chip=',num2str(F_chip/1e3),'[kHz]']})
     subplot(2,1,2)
     plot(t_Rx/1e-3,Signal_Rx_digital(:,1:MIMO_depth))
     xlabel('[msec]');grid on;grid minor
     title(['Rx Signal at AFE interface.T preamble synch=',num2str(T_preamble_synch/1e-3),'[msec]. T preamble CE=',num2str(T_preamble_CE/1e-3),'[msec].'])
-    
+%     
     scatterplot(Symbol_stream_Rx);
     grid on
     grid minor
-    title(gca,['scatter plot. EVM=',num2str(EVM_dB),'[dB]'])
+    M=64;
+    title(gca,{['scatter plot'],['EVM=',num2str(EVM_dB),'[dB]'],...
+   ['Modulation=',num2str(M),'-QAM. '],['N fft=',num2str(N_FFT),'. F chip=',num2str(F_chip/1e3),'[kHz]']})
     set(gcf,'windowstyle','docked');
     
     
