@@ -40,7 +40,7 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     % N_symbols=45590; % number of QAM symbols in the Frame
     
     %%% PTS
-    PTS=1 % PTS enabling flag
+    PTS=0 % PTS enabling flag
     %     M_PTS=16; %number of divisions of the N_FFT long block
     %     L_PTS=4; % upsamling rate of the PAPR teting during the algorithm execution
     %     W_PTS=8; % number of phase factors. e.g; for W_PTS=4, it is 1,j,-1,-j
@@ -685,6 +685,8 @@ else  %called by an external function
     Design_flag=Simulation_config.Design_flag;
     
     MIMO_depth=Simulation_config.MIMO_depth;
+    
+  
     
     
 end % if nargin <1

@@ -25,10 +25,10 @@ N_bits_Threshold=5e6;
 
 %%% Simulation parameters
 
-MIMO_depth=3;
+MIMO_depth=1;
 
-%Configuration='Operational' % OFDM, real channel, non identical symbols, IF signal, Minn& Zeng time synchronization
-Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
+Configuration='Operational' % OFDM, real channel, non identical symbols, IF signal, Minn& Zeng time synchronization
+%Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
 
 N_symbols=10000; % number of symbols in the Frame
 
@@ -440,6 +440,8 @@ OFDM_config.Equalizer_type=Equalizer_type;
 OFDM_config.N_preamble_synch=N_preamble_synch;
 OFDM_config.Enhancement_prmbl_CE=Enhancement_prmbl_CE;
 OFDM_config.Enhancement_prmbl_synch=Enhancement_prmbl_synch;
+
+OFDM_config.PTS.PTS=0; % PTS is neutralized in such simulation
 
 IF_chain_config.F_if=F_if;
 IF_chain_config.N_upsample=N_upsample;

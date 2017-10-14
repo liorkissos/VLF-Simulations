@@ -1,8 +1,7 @@
-Ver 6.2:
+Ver 6.3:
 
-1) experiments: added the original article algorithm of verifying the direction of the gradient and move only then
-2) added some recordings of the signal and the PAPR for the presentation
-3) advanced substantially with the presentation
+1) adapted the Simulation_Link script to PTS. in fact, neutrlized PTS by defintion in
+such simulation
 
 
 
