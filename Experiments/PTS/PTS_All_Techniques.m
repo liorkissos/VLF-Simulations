@@ -8,13 +8,13 @@ debug=0;
 
 %% User defined parameters
 
-P=5000; % number of OFDM symbols ( super symbols) in the stream
+P=1000; % number of OFDM symbols ( super symbols) in the stream
 
 reference_cfg=1;
 
-PTS_Algorithm= 'Iterative Flipping';
+%PTS_Algorithm= 'Iterative Flipping';
 %PTS_Algorithm= 'Reduced Complexity-mine';
-%PTS_Algorithm= 'Reduced Complexity-Article';
+PTS_Algorithm= 'Reduced Complexity-Article';
 
 %scrambling='interleaved';
 scrambling='contiguous';
