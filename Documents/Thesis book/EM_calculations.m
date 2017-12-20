@@ -17,13 +17,13 @@ Z_air=10
 
 %% user defined
 
-%f=40e3;
+f=5e3;
 
-f=5e3:5e3:150e3;
+%f=5e3:5e3:150e3;
 
 %sigma=5.7e7; % copper
 
-sigma=1e-2;
+sigma=10e-3;
 
 epsilon_r=7;
 mu_r=1;
@@ -36,8 +36,8 @@ epsilon=epsilon_0*epsilon_r;
 mu=mu_0*mu_r;
 
 lambda=c./f;
-
-Medium_conduction_metric= sigma./(omega*epsilon);
+    
+Medium_conduction_metric= sigma./(omega*epsilon); % a mteric of the conductivity of the material
 
 
 delta=sqrt(2./(omega*mu*sigma));
