@@ -253,7 +253,7 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     %(EsNo_data) is better than SNR per general symbol,
     %because the overhead symbols make us "waste"
     %signal energy without increasing data rate.
-    %therefore , for reliable measurement, net dataastream
+    %therefore , for reliable measurement, net data stream
     %should be the longest possible in comparison with
     %overhead symbols length
     

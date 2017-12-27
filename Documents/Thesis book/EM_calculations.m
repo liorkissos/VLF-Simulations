@@ -17,13 +17,13 @@ Z_air=10
 
 %% user defined
 
-f=5e3;
+%f=5e3;
 
-%f=5e3:5e3:150e3;
+f=5e3:5e3:150e3;
 
 %sigma=5.7e7; % copper
 
-sigma=10e-3;
+sigma=1e-3;
 
 epsilon_r=7;
 mu_r=1;
@@ -55,6 +55,8 @@ xlabel('Frequency [kHz]')
 ylabel('Skin depth [meters]')
 set(gcf,'windowstyle','docked')
 %title(['Skin effect Vs frequency: \sigma=',num2str(sigma/1e-3),'[mS/m]. \epsilon_r=',num2str(epsilon_r),''])
-title({['Skin effect Vs frequency'],['  \sigma=',num2str(sigma/1e-3),'[mS/m]. \epsilon_r=',num2str(epsilon_r),''],['Conductivity metric: \sigma/\epsilon\mu=',num2str(min(Medium_conduction_metric)),'']})
+%title({['Skin effect Vs frequency'],['  \sigma=',num2str(sigma/1e-3),'[mS/m]. \epsilon_r=',num2str(epsilon_r),''],['Conductivity metric at 10kHz: \sigma/\omega\epsilon=',num2str(min(Medium_conduction_metric)),'']})
+title({['Skin effect Vs frequency'],['  \sigma=',num2str(sigma/1e-3),'[mS/m]. \epsilon_r=',num2str(epsilon_r),''],['Conductivity metric at 10kHz: \sigma/\omega\epsilon=',num2str((Medium_conduction_metric(f==10e3))),'']})
+
 
 

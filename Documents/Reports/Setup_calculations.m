@@ -4,41 +4,82 @@ clc
 close all
 
 %% User input
-f0=10e3;
-r=1; % distance from loop
 
-mu0=4*pi*1e-7;
+%%% Signal
+f0=10e3;
+BW=10e3;
+PAPR=12; % of signal
+
+r=6; % distance from loop
+
+%%% Tx coil
 Lcoil=485e-6;
-Zcoil=2*pi*f0*Lcoil; % loop impedance
 D=0.5; % loop diameter
 Nwind_coil=20; % Loop # of windings
 
-PAPR=13; % of signal
-Gamp=15; % V/V. Maximum is 20 V/V
+%%% Transmiting devices
+Gamp=20; % V/V. Maximum is 20 V/V
 Vin_amp_peak=10; % D/A's output (input to Amplifier)
 
+%%% Rx Sensor
 Sensitivity_sensor=0.05e9; % V/Tesla
+MFSD_Tesla=8e-6*1e-9; % Magnetic field spectral density [Tesla/sqrt(Hz)]
+
+%%%% A/D
+ENoB=12.5;
+Fs=100e3; % Hz
+V_FS_adc=10;
+
+%%% Atmospheric noise
+PSD_noise_atmspr_dBm=-174+140; % [dBm/Hz] relies on curve from Gibson
 
 
+%%% constants
+mu0=4*pi*1e-7;
 
 %% Calculations
 
+%%%%%%%%%%%%%
+%%% Signal
+
 %%% Tx Coil
+Zcoil=2*pi*f0*Lcoil; % loop impedance
+
 Vin_amp_rms=Vin_amp_peak*10^(-PAPR/20);
 Vout_amp_rms=Vin_amp_rms*Gamp;
 Iout_amp_rms=Vout_amp_rms/Zcoil;
 
 %%% Magnetic field at distance r 
 Brms_Tesla=mu0*pi*((D/2)^2)*Iout_amp_rms*Nwind_coil/(2*pi*r^3) ;
-Brms_mGauss=(Brms_Tesla*1e4)/1e-3
+Brms_mGauss=(Brms_Tesla*1e4)/1e-3;
 
 %%% Rx Coil
-Vout_sensor_rms=Brms_Tesla*Sensitivity_sensor
+Vout_sensor_rms=Brms_Tesla*Sensitivity_sensor;
 Pout_sensor_dBm=10*log10((Vout_sensor_rms^2/(2*50))/1e-3)
-Pnoise_dBm=-174+10*log10(10e3);
-SNR_dB=Pout_sensor_dBm-Pnoise_dBm;
 
-% Pnoise_watt=10^9*(Pnoise_dBm/10)*1e3;
+%%%%%%%%%%%%%
+%%% Noise
+
+%%% Sensor
+
+VSD_noise_sensor=MFSD_Tesla*Sensitivity_sensor; %V/sqrt(Hz)
+PSD_noise_sensor=VSD_noise_sensor^2; % V^2/Hz
+Vsqr_noise_sensor=PSD_noise_sensor*BW; % V^2
+P_noise_sensor_dBm=10*log10(Vsqr_noise_sensor/(2*50)/1e-3)
+
+
+%%% A/D
+DR_adc=6*ENoB+1.7;
+P_FS_adc_dBm=10*log10(V_FS_adc^2/(2*50)/1e-3);
+P_noise_adc_dBm=(P_FS_adc_dBm-DR_adc)-10*log10(Fs/BW)
+
+%%% Atmospheric noise
+P_noise_atmspr_dBm=PSD_noise_atmspr_dBm+10*log10(BW)
+
+
+
+ SNR_dB=Pout_sensor_dBm-max([P_noise_sensor_dBm,P_noise_adc_dBm,P_noise_atmspr_dBm])
+
 
 %% Sanity checks
 
@@ -55,7 +96,7 @@ if Iout_amp_rms>7
 end
 
 if Brms_mGauss>4
-    warning('Magnetic field too high')
+    warning('Magnetic field at receiver too high')
 end
 
 
