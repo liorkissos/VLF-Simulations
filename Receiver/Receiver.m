@@ -372,7 +372,7 @@ for mm=1:MIMO_depth
         
         
         if nn==nn_max
-            break
+            break %exit  the quest for peak once it has been surely found
         else
             nn=nn+1;
         end
@@ -389,6 +389,7 @@ for mm=1:MIMO_depth
     
     if Time_sync_flag % timing synchronization based on the self calculation with the Minn&Zeng algorithm. else: group delay is the one calculated based on
         Group_delay_total=find(Metric_sync==max(Metric_sync))-N_CP-1;
+     %   Group_delay_total1=find(Metric_sync==max(Metric_sync));
         
         if strcmp(Configuration,'Impulse Response')
             % when running an impulse OFDM block (see transmitter part), there happens to
@@ -413,7 +414,7 @@ for mm=1:MIMO_depth
             offset_deliberate=round(2*N_CP/5);
         end
         
-        if offset_deliberate>N_CP-1;
+        if offset_deliberate>N_CP-1
             error('deliberate synchronization offset must not be greater than N_CP')
         end
         
@@ -428,6 +429,7 @@ for mm=1:MIMO_depth
         figure(11)
         set(gcf,'windowstyle','docked');
         plot(Metric_sync)
+        grid minor
         title('Minn& Zeng Likelihood function: method B, modification # 1 ')
         hold off
         
@@ -475,11 +477,7 @@ for mm=1:MIMO_depth
     if Frequency_sync_flag && Frequency_sync_Coarse_flag % coarse carrier synch harms performance if no Carrier offset is present. especially on low SNR
         
         %%% finding the frequency offset
-        
-        %     %%%% TEMP
-        %     find(abs(P_frequency)==max(abs(P_frequency)))
-        %    find(abs(Metric_sync)==max(abs(Metric_sync)))
-        %     %%%% TEMP
+
         
         P_frequency_max=P_frequency(abs(P_frequency)==max(abs(P_frequency)));
         Phase_offset=angle(P_frequency_max);
@@ -502,9 +500,12 @@ for mm=1:MIMO_depth
     
     %% 5) Chopping group delay
     
-    Signal_Rx=Signal_Rx(Group_delay_total+1:end); %15300: cal, 14049: op
     
+    Signal_Rx=Signal_Rx(Group_delay_total+1:end); %15300: cal, 14049: op
+
     %% 6) Preamble_Synch removal
+    
+    
     Signal_Rx=Signal_Rx(N_CP+(N_preamble_synch)*N_FFT+1:end);
     
     %% 7) Serial to Parralel
@@ -761,6 +762,7 @@ if Time_sync_flag
         OFDM_subcarrier_kk_Rx_MIMO=squeeze(OFDM_matrix_Rx_f_MIMO(kk,:,:));
         W_estimator_subcarrier_kk_MIMO=W_estimator_MIMO(kk,:);
         
+        %%% The MRC equalization
         OFDM_matrix_Rx_f(kk,:)=conj(W_estimator_subcarrier_kk_MIMO)*OFDM_subcarrier_kk_Rx_MIMO.'; % BFB p.734, eq.20.75
         
     end
@@ -803,7 +805,6 @@ end
 % removal of the channel estimtion preamble
 OFDM_matrix_Rx_f=OFDM_matrix_Rx_f(:,N_preamble_CE+1:end); % removal of the channel estimtion preamble
 N_frames_Rx=N_frames_Rx-N_preamble_CE; % reflects the removal of the 2 preamble_CE's (=channel estimating)
-
 
 %% IPTS
 
@@ -864,14 +865,12 @@ Pilots_matrix_Tx=sqrt(Amp_pilots*P_data)*ones(Npilots,N_frames_Rx);
 
 if Frequency_sync_flag % always operational
     
-    %Phase_offset_est_fine=angle(Pilots_matrix_Tx(:,1:N_frames_Rx))-angle(Pilots_matrix_Rx);
-    Phase_offset_est_fine=angle(Pilots_matrix_Tx)-angle(Pilots_matrix_Rx);
-    
+   % the phase offset estimation
+    Phase_offset_est_fine=angle(Pilots_matrix_Tx)-angle(Pilots_matrix_Rx); 
     Phase_offset_est_fine=mean(Phase_offset_est_fine,1);
     
+    % phase offset correction
     Phase_offset_est_fine_mat=repmat(Phase_offset_est_fine,[N_data,1]);
-    
-    
     data_subcarrier_matrix_Rx=data_subcarrier_matrix_Rx.*exp(j*Phase_offset_est_fine_mat);% the actual correction of the phase, symbol (column) by symbol
     
     % extention: not really needed- equivalent frequency error causing the

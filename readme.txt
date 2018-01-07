@@ -1,6 +1,8 @@
-Ver 6.4:
+Ver 6.5:
 
-Working on the thesis book
+Transmitter.m: inverse sinc is applied only under Pre emphasis flag. just like the differentiator 
+
+
 
 
 

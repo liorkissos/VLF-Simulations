@@ -658,7 +658,7 @@ end
 
 %% 14) Inverse Sinc Filter
 
-if ~strcmp(Configuration,'Calibration') && ~Ref_Cfg_flag% in any case other than Calibration, the interpolation factor and thus filter need to be flexible in order to adapt to the variable F_chip and the maximum Fsample cnstrained by the NI 6212
+if ~strcmp(Configuration,'Calibration') && ~Ref_Cfg_flag && Pre_emphasis_flag% in any case other than Calibration, the interpolation factor and thus filter need to be flexible in order to adapt to the variable F_chip and the maximum Fsample cnstrained by the NI 6212
     
     
     Fpass=F_if+F_chip/2;
@@ -667,15 +667,29 @@ if ~strcmp(Configuration,'Calibration') && ~Ref_Cfg_flag% in any case other than
     H_inv_sinc_SPEC=fdesign.isinclp('Fp,Fst,Ap,Ast',Fpass,Fstop,0.001,55,Fs);%672
     H_inv_sinc_flt=design(H_inv_sinc_SPEC);
     
+    if test_signal_processing_flag
+    
+        h=fvtool(H_inv_sinc_flt,'Analysis','freq');
+        h.Fs=Fs;
+        h.FrequencyRange='[0, Fs/2)';
+        h.FrequencyScale='Linear';
+        h.MagnitudeDisplay='Magnitude';
+        
+    end
+    
 elseif strcmp(Configuration,'Calibration') % calibration
     load('Filters.mat') % load all the filters at once
     
 end
 
-%Signal_Tx=filter(H_inv_sinc_flt,Signal_Tx); % accumulated group delay=351+140=491
-Signal_Tx=conv(H_inv_sinc_flt.numerator,Signal_Tx,'full'); %  % conv instead of filter so as not to loose the suffix samples of the signal, that might cause loosing an actual payload frame
-Group_delay_inv_sinc=H_inv_sinc_flt.order/2;
-Group_delay_total=Group_delay_total+Group_delay_inv_sinc;
+if  Pre_emphasis_flag || strcmp(Configuration,'Calibration')
+    
+    %Signal_Tx=filter(H_inv_sinc_flt,Signal_Tx); % accumulated group delay=351+140=491
+    Signal_Tx=conv(H_inv_sinc_flt.numerator,Signal_Tx,'full'); %  % conv instead of filter so as not to loose the suffix samples of the signal, that might cause loosing an actual payload frame
+    Group_delay_inv_sinc=H_inv_sinc_flt.order/2;
+    Group_delay_total=Group_delay_total+Group_delay_inv_sinc;
+    
+end
 
 %%% Power ratios
 E11_1=sum(sum((abs(Signal_Tx_upconverted)).^2));
@@ -688,16 +702,13 @@ if Pre_emphasis_flag% in any case other than Calibration, the interpolation fact
     
     H_diff_SPEC = fdesign.differentiator(41); % Filter order is 33.
     H_diff_flt = design(H_diff_SPEC,'firls');
-    
-    %fvtool(H_diff_flt,'magnitudedisplay','zero-phase')
+
     Signal_Tx=conv(H_diff_flt.numerator,Signal_Tx,'full'); %  % conv instead of filter so as not to loose the suffix samples of the signal, that might cause loosing an actual payload frame
     Group_delay_diff=H_diff_flt.order/2;
     Group_delay_total=Group_delay_total+Group_delay_diff;
-    
-    
-    
+
     if test_signal_processing_flag
-        
+
         figure(3)
         set(gcf,'windowstyle','docked');
         f=linspace(-Fs/2,Fs/2,length(Signal_Tx));
@@ -706,6 +717,12 @@ if Pre_emphasis_flag% in any case other than Calibration, the interpolation fact
         xlabel('freq [kHz]')
         grid on
         grid minor
+        
+        h=fvtool(H_diff_flt,'Analysis','freq');
+        h.Fs=Fs;
+        h.FrequencyRange='[-Fs/2, Fs/2)'
+        h.FrequencyScale='Linear'
+        h.MagnitudeDisplay='Magnitude'
         
     end
     
