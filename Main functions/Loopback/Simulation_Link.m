@@ -18,9 +18,9 @@ global BBB
 
 %% Simulation parameters
 
-BER_Thershold=1e-3; % if BW<20e3, lower to BER_Threshold=1e-3
+BER_Thershold=1e-4; % if BW<20e3, lower to BER_Threshold=1e-3
 
-Error_bits_threshold=400;
+Error_bits_threshold=900;
 N_bits_Threshold=5e6;
 
 %%% Simulation parameters
@@ -30,7 +30,7 @@ MIMO_depth=1;
 Configuration='Operational' % OFDM, real channel, non identical symbols, IF signal, Minn& Zeng time synchronization
 %Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
 
-N_symbols=10000; % number of symbols in the Frame
+N_symbols=30000; % number of symbols in the Frame
 
 Ref_Cfg_flag=0;
 %Ref_Cfg_flag=1;
@@ -58,9 +58,9 @@ Phase_resp_vec=[0];
 % Amp_resp_vec=[1 0.5];
 % Phase_resp_vec=[0 0];
 
-% Delay_resp_vec=[0 4 ]; %
-% Amp_resp_vec=[1 0.5 ];
-% Phase_resp_vec=[0 0 ];
+% Delay_resp_vec=[0 18 ]; %
+% Amp_resp_vec=[1 0.75 ];
+% Phase_resp_vec=[0 pi/4 ];
 
 %% PHY Configuration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -102,13 +102,13 @@ if ~Ref_Cfg_flag
     N_CP=50;
     Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
     P_total=1; % total OFDM symbol (time domain) power
-    M=64; % QAM order
+    M=16; % QAM order
     N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
     N_preamble_synch=8; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
-    Enhancement_prmbl_CE=4.2; % coded
-    Enhancement_prmbl_synch=3.3; % coded
-%     Enhancement_prmbl_CE=4.0; % uncoded
-%     Enhancement_prmbl_synch=3.0; % uncoded
+    Enhancement_prmbl_CE=3.65; % coded
+    Enhancement_prmbl_synch=2.8; % coded
+%     Enhancement_prmbl_CE=0; % uncoded
+%     Enhancement_prmbl_synch=0; % uncoded
      
     
     
@@ -161,7 +161,9 @@ if ~Ref_Cfg_flag
     %Interleave_flag=0;
     
     m_coding=M; % must be equal to the modulation depth, M. see comm.RSEncoder Help
-    t_coding=10; % number of assured correction (in messages per codeword terms)
+%    t_coding=10; % 64QAM 2/3.  number of assured correction (in messages per codeword terms)
+    t_coding=4; % 16QAM 1/2.  number of assured correction (in messages per codeword terms)
+    
     
     % N_coding = 2^(log2(m_coding))-1;           % RS codeword length
     % K_coding = N_coding-2*t_coding;
@@ -173,7 +175,7 @@ else
 end
 
 %% Carrier Offset
-%Carrier_offset=60*(F_if/1e6) % Tx to Rx Carrier (F_if) offset. F_if/1e6 means 1ppm
+%Carrier_offset=100*(F_if/1e6) % Tx to Rx Carrier (F_if) offset. F_if/1e6 means 1ppm
 Carrier_offset=0 % Tx to Rx Carrier (F_if) offset. F_if/1e6 means 1ppm
 
 %% Calibration mode config
@@ -364,7 +366,7 @@ if (N_FFT~=512 && N_CP/N_data>0.2587 || N_FFT==512 && N_CP/N_data>0.1270 ) && st
 end
 
 if N_preamble_synch<8
-    error('Preamble Synch (long preamble) too short. might create frequency and timing correction problems')
+    warning('Preamble Synch (long preamble) too short. might create frequency and timing correction problems')
 end
 
 if strcmp(Configuration,'Calibration') && F_chip~=5e3
@@ -403,9 +405,10 @@ switch M
         
     case 16
         if Coding_flag && numel(Delay_resp_vec)==1 % coded & flat channel
-            SNR_vec=[0,4,8,9,10,11,11.75,12.5,13]; %
+           % SNR_vec=[0,4,8,9,10,11,11.75,12.5,13]; %
+            SNR_vec=[0,4,8,10,12,13,14,15,16]; %
         else
-            SNR_vec=[0,4,8,10,12,14,16,17,18]; %
+            SNR_vec=[0,4,8,10,12,14,16,18,19,20]; %
         end
         
 end
@@ -594,4 +597,22 @@ while (kk<=length(SNR_vec) && BER>BER_Thershold)
     
     kk=kk+1;
 end
+
+
+File_name=['N_FFT=',num2str(N_FFT),'. N_CP=',num2str(N_CP),...
+    '. M_QAM=',num2str(M),'. N Prmble long=',num2str(N_preamble_synch),'. MIMO=',num2str(MIMO_depth)...
+    '. Prmble enhance=',num2str(Enhancement_prmbl_CE),',',num2str(Enhancement_prmbl_synch),...
+    '. Coding=',num2str(Coding_flag),'. Code rate=',num2str(K_coding/N_coding),'',...
+    '. Frequency offset=',num2str(Carrier_offset),'.  Equalizer=',num2str(Equalizer_type),'Channel=MP.mat'];
+
+% File_name=['N_FFT=',num2str(N_FFT),'. N_CP=',num2str(N_CP),...
+%     '. M_QAM=',num2str(M),'. N Prmble long=',num2str(N_preamble_synch),'. MIMO=',num2str(MIMO_depth)...
+%     '. Prmble enhance=',num2str(Enhancement_prmbl_CE),',',num2str(Enhancement_prmbl_synch),...
+%     '. Coding=',num2str(Coding_flag),'. Code rate=',num2str(K_coding/N_coding),'',...
+%     '. Frequency offset=',num2str(Carrier_offset),'.  Equalizer=',num2str(Equalizer_type),'Channel=MP 2 taps 18 chip 0.5.mat'];
+
+File_name=fullfile(pwd,'Results',File_name);
+
+%File_name=strcat(pwd,'\Results\',File_name);
+save(File_name,'EsNo_vec','EbNo_data_vec','BER_vec')
 

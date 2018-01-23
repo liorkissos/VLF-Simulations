@@ -174,45 +174,89 @@ close all
 % 
 % legend('Reference- SISO, No equalizer','SISO 1x1','MISO 1x2','MISO 1x3')
 
-%%% Fif: low versus high
+% %%% Fif: low versus high
+% 
+% M=16;
+%  load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=8. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=Flat. Fif=10.mat')
+% 
+% 
+% 
+%  addition=2;
+%  %EbNo_data_vec=[EbNo_data_vec,EbNo_data_vec(end)+2,EbNo_data_vec(end)+3];
+%  BER_Ref = berawgn(EbNo_data_vec,'qam',max(4,M));
+% % EsNo_vec=[EsNo_vec,EsNo_vec(end)+2,EsNo_vec(end)+3];
+% 
+% h_figure=figure(1);
+% set(h_figure,'WindowStyle','Docked')
+% 
+% semilogy(EsNo_vec,BER_Ref,'-o')
+% hold on
+% grid on
+% grid minor
+% xlabel('EsNo [dB]')
+% ylabel('BER')
+% 
+% 
+% 
+% load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=8. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=Flat. Fif=10.mat')
+% semilogy(EsNo_vec,BER_vec,'-o')
+% hold on
+% 
+% load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=8. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=Flat. Fif=40.mat')
+% semilogy(EsNo_vec,BER_vec,'-o')
+% hold on
+% 
+% load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=8. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=Flat. Fif=40. inv sinc.mat')
+% semilogy(EsNo_vec,BER_vec,'-o')
+% hold on
+% 
+% 
+% 
+% legend('Reference- No equalizer, F_{IF}=10kHz','F_{IF}=10kHz','F_{IF}=40kHz','F_{IF}=40kHz. w inv sinc')
+% 
+% 
+
+
+%%% Preambles enhancement
 
 M=16;
- load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=8. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=Flat. Fif=10.mat')
-
-
-
- addition=2;
- %EbNo_data_vec=[EbNo_data_vec,EbNo_data_vec(end)+2,EbNo_data_vec(end)+3];
- BER_Ref = berawgn(EbNo_data_vec,'qam',max(4,M));
-% EsNo_vec=[EsNo_vec,EsNo_vec(end)+2,EsNo_vec(end)+3];
+%  load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=8. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=Flat. Fif=10.mat')
+% 
+% 
+% 
+%  addition=2;
+%  %EbNo_data_vec=[EbNo_data_vec,EbNo_data_vec(end)+2,EbNo_data_vec(end)+3];
+%  BER_Ref = berawgn(EbNo_data_vec,'qam',max(4,M));
+% % EsNo_vec=[EsNo_vec,EsNo_vec(end)+2,EsNo_vec(end)+3];
 
 h_figure=figure(1);
-set(h_figure,'WindowStyle','Docked')
+%set(h_figure,'WindowStyle','Docked')
 
-semilogy(EsNo_vec,BER_Ref,'-o')
-hold on
+% semilogy(EsNo_vec,BER_Ref,'-o')
+% hold on
+% grid on
+% grid minor
+% xlabel('EsNo [dB]')
+% ylabel('BER')
+
+
+
+load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=2. MIMO=1. Prmble enhance=0,0. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=MP.mat')
+semilogy(EsNo_vec,BER_vec,'-o')
 grid on
 grid minor
 xlabel('EsNo [dB]')
 ylabel('BER')
-
-
-
-load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=8. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=Flat. Fif=10.mat')
-semilogy(EsNo_vec,BER_vec,'-o')
 hold on
 
-load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=8. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=Flat. Fif=40.mat')
-semilogy(EsNo_vec,BER_vec,'-o')
-hold on
-
-load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=8. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=Flat. Fif=40. inv sinc.mat')
+load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=2. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=MP.mat')
 semilogy(EsNo_vec,BER_vec,'-o')
 hold on
 
 
 
-legend('Reference- No equalizer, F_{IF}=10kHz','F_{IF}=10kHz','F_{IF}=40kHz','F_{IF}=40kHz. w inv sinc')
+legend('Not Enhanced','Enhanced')
+
 
 
 

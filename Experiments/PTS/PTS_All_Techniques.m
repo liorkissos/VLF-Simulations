@@ -8,13 +8,13 @@ debug=0;
 
 %% User defined parameters
 
-P=1000; % number of OFDM symbols ( super symbols) in the stream
+P=100; % number of OFDM symbols ( super symbols) in the stream
 
 reference_cfg=1;
 
 %PTS_Algorithm= 'Iterative Flipping';
-%PTS_Algorithm= 'Reduced Complexity-mine';
-PTS_Algorithm= 'Reduced Complexity-Article';
+PTS_Algorithm= 'Reduced Complexity-mine';
+%PTS_Algorithm= 'Reduced Complexity-Article';
 
 %scrambling='interleaved';
 scrambling='contiguous';
@@ -224,7 +224,7 @@ for pp=1:P % running over the stream
                         PAPR_min=PAPR;
                         b_opt=b;
                     else
-                        b=b_opt; % if the change is not in the gradient descet direction, stay where the last known optimum is
+                        b=b_opt; % the difference from the article method: if the change is not in the gradient descet direction, stay where the last known optimum is
                     end
                     
                     
@@ -269,7 +269,7 @@ for pp=1:P % running over the stream
                         PAPR_min=PAPR;
                         b_opt=b;
                     else
-                        b=b_opt;
+                        b=b_opt; %  the difference from the article method: if the change is not in the gradient descet direction, stay where the last known optimum is
                     end
                     
                     PAPR_min_stat_vec(JJ+(ii-1)*size(c,1)+kk)=PAPR_min;

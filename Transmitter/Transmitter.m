@@ -250,7 +250,6 @@ if db(P_max_data,'power')-db(P_max_preamble_CE,'power')<Enhancement_prmbl_CE
 end
 
 
-
 Signal_matrix_Tx(:,1:N_preamble_CE)=Signal_matrix_Tx(:,1:N_preamble_CE)*db2mag(Enhancement_prmbl_CE); %enhancement of the preamble_CE by 4 dB. checked and saw that the proposed 256 long sequence has a PAPR lower than the data sequence's always by higher than 4dB
 %Signal_matrix_Tx(:,1:N_preamble_CE)=Signal_matrix_Tx(:,1:N_preamble_CE)*db2mag(3.5); %enhancement of the preamble_CE by 4 dB. checked and saw that the proposed 256 long sequence has a PAPR lower than the data sequence's always by higher than 4dB
 
@@ -658,8 +657,9 @@ end
 
 %% 14) Inverse Sinc Filter
 
-if ~strcmp(Configuration,'Calibration') && ~Ref_Cfg_flag && Pre_emphasis_flag% in any case other than Calibration, the interpolation factor and thus filter need to be flexible in order to adapt to the variable F_chip and the maximum Fsample cnstrained by the NI 6212
-    
+%if ~strcmp(Configuration,'Calibration') && ~Ref_Cfg_flag && Pre_emphasis_flag% in any case other than Calibration, the interpolation factor and thus filter need to be flexible in order to adapt to the variable F_chip and the maximum Fsample cnstrained by the NI 6212
+ if ~strcmp(Configuration,'Calibration') && ~Ref_Cfg_flag % in any case other than Calibration, the interpolation factor and thus filter need to be flexible in order to adapt to the variable F_chip and the maximum Fsample cnstrained by the NI 6212
+   
     
     Fpass=F_if+F_chip/2;
     Fstop=(Fs/2)*0.99;

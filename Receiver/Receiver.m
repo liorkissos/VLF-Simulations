@@ -316,7 +316,9 @@ for mm=1:MIMO_depth
     nn=1;
     Metric_sync_max=0.85; % high enough to avoid detecting false peaks
     nn_max=length(Signal_Rx);
+   %d_mp=min(1,round(N_CP/2)); % the parameter that defines the clean part of the subsequnce. can be as high as N_CP, the maximum length channel presumably correctable by OFDM
     d_mp=min(25,round(N_CP/2)); % the parameter that defines the clean part of the subsequnce. can be as high as N_CP, the maximum length channel presumably correctable by OFDM
+
     while nn+4*L-1<length(Signal_Rx) % nn+4*L-1 is the farmost index of the 4th quarter of examined portion of the signal
         
         
@@ -432,15 +434,30 @@ for mm=1:MIMO_depth
         grid minor
         title('Minn& Zeng Likelihood function: method B, modification # 1 ')
         hold off
+        ylim ([0 1.1])
         
         figure(12)
         set(gcf,'windowstyle','docked');
         plot(abs(P_time))
         hold on
         plot(R)
+        grid minor
         
         Group_delay_total_estimated=Group_delay_total
         Group_delay_total_analytic
+        
+        
+        File_name=['Low SNR, with  Multipath, short preamble'];
+
+% File_name=['N_FFT=',num2str(N_FFT),'. N_CP=',num2str(N_CP),...
+%     '. M_QAM=',num2str(M),'. N Prmble long=',num2str(N_preamble_synch),'. MIMO=',num2str(MIMO_depth)...
+%     '. Prmble enhance=',num2str(Enhancement_prmbl_CE),',',num2str(Enhancement_prmbl_synch),...
+%     '. Code rate=',num2str(K_coding/N_coding),'.mat'];
+
+File_name=fullfile(pwd,'Results',File_name);
+
+%File_name=strcat(pwd,'\Results\',File_name);
+save(File_name,'Metric_sync')
         
         %%% calculation of the memory (=support) of the channel seen by the
         %%% pure OFDM Modem. i.e; everything between the S/P and the P/S
@@ -644,7 +661,7 @@ for mm=1:MIMO_depth
         
         switch Equalizer_type
             
-            case 'LS'
+            case 'LS' % Direct frequency response estimation
                 %OFDM_Ref_symbol_Rx_f=OFDM_matrix_Rx_f(:,1); % preamble has been removed. 1st symbol (1st column) is no longer preable
                 
                 H_est=OFDM_Ref_symbol_Rx_f./OFDM_Ref_symbol_Tx_f;
@@ -698,7 +715,7 @@ for mm=1:MIMO_depth
                 % h_est=inv(B)*H_est; % do not erase! needs to be debugged.
                 % should realize an IDFT
                 
-            case 'ML'
+            case 'ML' % Impulse response estimation, and then frequency response derivation
                 
                 L=N_CP;
                 D=N_FFT-(Nguard_band_left+Nguard_band_right+1);
@@ -738,7 +755,8 @@ for mm=1:MIMO_depth
                 
                 dummy=0.1; % a fictitious DC subcarrier. only for the sake of being compatible with LS equalizer which was designed previously
                 H_est=[H_est(1:D/2);dummy;H_est(D/2+1:D)];
-                %  H_est_mat=repmat(H_est,[1,N_frames_Rx]); %%% TEMP 24/2
+                %  H_est_mat=repmat(H_est,[1,N_frames_Rx]); %%% TEMP 24/2 %
+                %  
                 
                 
         end
@@ -863,6 +881,7 @@ P_data=P_total/(Amp_pilots*Npilots+N_data); % average power of data subcarrier
 
 Pilots_matrix_Tx=sqrt(Amp_pilots*P_data)*ones(Npilots,N_frames_Rx);
 
+
 if Frequency_sync_flag % always operational
     
    % the phase offset estimation
@@ -878,10 +897,10 @@ if Frequency_sync_flag % always operational
     Carrier_offset_est_fine=Phase_offset_est_fine./(2*pi*T_chip*((0:N_frames_Rx-1)*(N_FFT+N_CP)+0.5*N_FFT)); % Prasad, p.131, 5.23: the phase part
     Carrier_offset_est=Carrier_offset_est_coarse-mean(Carrier_offset_est_fine(2:end));
     Carrier_offset_est_error_dB=db(abs(Carrier_offset_est-Carrier_offset)/Carrier_offset);
-    
-    
-    
+           
 end
+
+
 
 %%% Estimation of remainder of frequency error: Prasad p.131. equation 5.23:
 %%% through solving a LS problem: phi_vec=A_mat*x_vec. remaining frequency
@@ -935,10 +954,7 @@ if Frequency_sync_flag && test_synch_channel_flag % Prasad p.131. equation 5.23:
     title('Carrier offset Vs. the super symbols of the frame')
     ylabel('Carrier offset')
     xlabel('Super Symbol index within the frame')
-    
-    
-    
-    
+  
 end
 
 %% 17) QAM symbols Matrix to QAM symbols Vector
