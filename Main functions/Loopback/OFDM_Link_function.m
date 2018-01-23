@@ -29,14 +29,14 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     MIMO_depth=3;
     
     
-    %Link_Type='HW';
-    Link_Type='SW';
+    Link_Type='HW';
+    %Link_Type='SW';
     
     Configuration='Operational' % OFDM, real channel, non identical symbols, IF signal, Minn& Zeng time synchronization
     %Configuration='Calibration' % OFDM, 1-tap channel, identical symbols, BB signal, artificial time synchronization based on group delay summing along the chain and exact sampling times
     %Configuration='Impulse Response'; % signal containing impulses at each
     
-    N_symbols=10000; % number of QAM symbols in the Frame
+    N_symbols=5000; % number of QAM symbols in the Frame
     % N_symbols=45590; % number of QAM symbols in the Frame
     
     %%% PTS
@@ -53,7 +53,7 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     %     PTS_algorithm= 'Reduced_Complexity';
     %     %PTS_algorithm= 'Iterative_Flipping';
     
-    % PTS_Algorithm= 'Iterative Flipping';
+    %PTS_Algorithm= 'Iterative Flipping';
     PTS_Algorithm= 'Reduced Complexity-mine';
     % PTS_Algorithm= 'Reduced Complexity-Article';
     
@@ -120,84 +120,60 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
         
         
         
+        
+        
         %%% Config # 2 : 802.16a. 256 subcarriers. "Low PAPR Sequences for the 802.16a Preamble"
         F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)N_FFT=128;
-        %F_chip=2.94e3; % can be interchanged with 20e3 or any other bandwidth as long as N_FFT remains 256
         N_FFT=256; % do not vary!
         Npilots=6;
         Nguard_band_left=28; % do not vary!Nguard_band_right=Nguard_band_left-1; % do not vary!
         Nguard_band_right=Nguard_band_left-1; % do not vary!
-        % N_CP=30;
-        N_CP=50;
+        %N_CP=50;
+        N_CP=30;
         Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
         P_total=1; % total OFDM symbol (time domain) power
         M=16; % QAM order
         N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
         N_preamble_synch=8; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
-        %  N_preamble_synch=1; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
-        
         
         if ~PTS
-            Enhancement_prmbl_CE=4.05; %
-            Enhancement_prmbl_synch=3.1; %
+            Enhancement_prmbl_CE=4.1; %
+            Enhancement_prmbl_synch=3.0; %
         else
-            Enhancement_prmbl_CE=2; %
+            Enhancement_prmbl_CE=1.5; %
             Enhancement_prmbl_synch=0.5; %
             
         end
-        
-        %                         %%% Config # 2 : 802.16a. 256 subcarriers. "Low PAPR Sequences for the 802.16a Preamble"
-        %                         F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)N_FFT=128;
-        %                         N_FFT=256; % do not vary!
-        %                         Npilots=6;
-        %                         Nguard_band_left=28; % do not vary!Nguard_band_right=Nguard_band_left-1; % do not vary!
-        %                         Nguard_band_right=Nguard_band_left-1; % do not vary!
-        %                         N_CP=50;
-        %                         %N_CP=25;
-        %                         Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
-        %                         P_total=1; % total OFDM symbol (time domain) power
-        %                         M=16; % QAM order
-        %                         N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
-        %                         N_preamble_synch=8; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
-        %
-        %                         if ~PTS
-        %                             Enhancement_prmbl_CE=4.3; %
-        %                             Enhancement_prmbl_synch=3.2; %
-        %                         else
-        %                             Enhancement_prmbl_CE=2; %
-        %                             Enhancement_prmbl_synch=0.5; %
-        %
-        %                         end
         %
         
         
         
         
-        %         %%% Config # 3: 802.16a. 64 subcarriers. "Low PAPR Sequences for the 802.16a Preamble".  When enabling
-        %         %%% PTS, use it and not the others since greater N_FFT demand greater splitting (M_PTS) which becomes
-        %         %%% too complex to realize
-        %         % F_chip=2.94e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
-        %         F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
-        %         N_FFT=64;
-        %         Npilots=2;
-        %         Nguard_band_left=7; %  do not vary! lower number than 6 will harm the anti aliasing filter and thus the performance
-        %         Nguard_band_right=Nguard_band_left-1; % do not vary!
-        %         %N_CP=12;
-        %         N_CP=12;
-        %         Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
-        %         P_total=1; % total OFDM symbol (time domain) power
-        %         M=16; % QAM order
-        %         N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
-        %         N_preamble_synch=32; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
-        %
-        %         if ~PTS
-        %             Enhancement_prmbl_CE=7.15; %
-        %             Enhancement_prmbl_synch=4.1; %
-        %         else
-        %             Enhancement_prmbl_CE=3.5; %
-        %             Enhancement_prmbl_synch=0; %
-        %         end
-        
+%         %%% Config # 3: 802.16a. 64 subcarriers. "Low PAPR Sequences for the 802.16a Preamble".  When enabling
+%         %%% PTS, use it and not the others since greater N_FFT demand greater splitting (M_PTS) which becomes
+%         %%% too complex to realize
+%         % F_chip=2.94e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
+%         F_chip=10e+03;% The signal's sampling frequency at the output of the cP insertion block. (Original value is: 1.3913e+08)
+%         N_FFT=64;
+%         Npilots=2;
+%         Nguard_band_left=7; %  do not vary! lower number than 6 will harm the anti aliasing filter and thus the performance
+%         Nguard_band_right=Nguard_band_left-1; % do not vary!
+%         %N_CP=12;
+%         N_CP=12;
+%         Amp_pilots_dB=0; % pilot subcarrier power vs average data subcarrier power
+%         P_total=1; % total OFDM symbol (time domain) power
+%         M=16; % QAM order
+%         N_preamble_CE=2; % at least 2 are needed for SNR calculation in receiver
+%         N_preamble_synch=32; % the length of the time domain long preamble: (N_preamble_synch*N_FFT+N_CP)*T_chip. do not go below 8! needed at low SNR's
+%         
+%         if ~PTS
+%             Enhancement_prmbl_CE=7.15; %
+%             Enhancement_prmbl_synch=4.1; %
+%         else
+%             Enhancement_prmbl_CE=3.5; %
+%             Enhancement_prmbl_synch=0; %
+%         end
+%         
         
         
         
@@ -215,7 +191,7 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
         %         Fs_req=100e3;
         %
         %%% configuration # 2
-        F_if=40e3;
+        F_if=10e3;
         Frec_req=100e3;
         Fs_req=100e3;
         
@@ -293,22 +269,22 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
         
         Fs_channel=F_chip;
         
-                Delay_resp_vec=[0 ]; %
-                Amp_resp_vec=[1 ];
-                Phase_resp_vec=[0 ];
+        Delay_resp_vec=[0 ]; %
+        Amp_resp_vec=[1 ];
+        Phase_resp_vec=[0 ];
+%         
+%         Delay_resp_vec=[0 10 15]; %
+%         Amp_resp_vec=[0.2 1 0.5 ];
+%         Phase_resp_vec=[0 0 0  ];
         
-        %                 Delay_resp_vec=[0 10 15]; %
-        %                 Amp_resp_vec=[0.2 1 0.5 ];
-        %                 Phase_resp_vec=[0 0 0  ];
+%         Delay_resp_vec=[0 10 ]; %
+%         Amp_resp_vec=[1 0.5 ];
+%         Phase_resp_vec=[0 0 ];
         
-%         Delay_resp_vec=[0 18 ]; %
-%         Amp_resp_vec=[1 0.75 ];
-%         Phase_resp_vec=[0 pi/4 ];
-        
-        %                         Delay_resp_vec=[0 1 ]; %
-        %                         Amp_resp_vec=[0.5 1 ];
-        %                         Phase_resp_vec=[0 0 ];
-        
+%         Delay_resp_vec=[0 1 ]; %
+%         Amp_resp_vec=[0.5 1 ];
+%         Phase_resp_vec=[0 0 ];
+%         
         
     else % load channel model: Alon's room model
         
@@ -621,8 +597,10 @@ if nargin<1 %% User Input %%%%%%%%%%%%%%%%%%
     end
     
     if N_FFT==64 && strcmp(Link_Type,'HW')
-        error('N_FFT==64 on HW not working well for some reason. tried to debug but was unable to find resaon')
+        warning('N_FFT==64 on HW not working well for some reason. tried to debug but was unable to find resaon')
     end
+    
+    
     %% Preparations of structures
     
     %%% Configuration Structures
@@ -977,8 +955,8 @@ if nargin<1
     f_adc=linspace(-Fs/2,Fs/2,M);
     f_dca=linspace(-Frec/2,Frec/2,M);
     A=fftshift(fft(Signal_Tx_digital(Testing_data.Group_delay_Tx_total+1:end),M));
-    B=fftshift(fft(Signal_Rx_MIMO(Testing_data.Group_delay_Tx_total+1:end,:),M));
-  %  B=fftshift(fft(Signal_Rx_digital(Testing_data.Group_delay_Tx_total+1:end),M));
+    B=fftshift(fft(Signal_Rx_MIMO(Testing_data.Group_delay_Tx_total+1:end,1:MIMO_depth),M));
+    %  B=fftshift(fft(Signal_Rx_digital(Testing_data.Group_delay_Tx_total+1:end),M));
     
     
     figure
@@ -1028,7 +1006,7 @@ if nargin<1
     title({['Tx Signal at AFE interface'],['T preamble synch=',num2str(T_preamble_synch/1e-3),'[msec]. T preamble CE=',num2str(T_preamble_CE/1e-3),'[msec].'],...
         ['Modulation=',num2str(M),'-QAM. '],['N fft=',num2str(N_FFT),'. F chip=',num2str(F_chip/1e3),'[kHz]']})
     subplot(2,1,2)
-  %  plot(t_Rx/1e-3,Signal_Rx_digital(:,1:MIMO_depth))
+    %  plot(t_Rx/1e-3,Signal_Rx_digital(:,1:MIMO_depth))
     plot(t_Rx/1e-3,Signal_Rx_MIMO(:,1:MIMO_depth))
     xlabel('[msec]');grid on;grid minor
     title(['Rx Signal at AFE interface.T preamble synch=',num2str(T_preamble_synch/1e-3),'[msec]. T preamble CE=',num2str(T_preamble_CE/1e-3),'[msec].'])

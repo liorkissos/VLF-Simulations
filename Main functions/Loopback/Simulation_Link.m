@@ -49,18 +49,18 @@ SNR_method='EsNo'; % True Baseband signal SNR within signal's
 
 %%% Multipath pattern
 
-Delay_resp_vec=[1]; % 0=the time delay at which the first sample enters the channel
-Amp_resp_vec=[1];
-Phase_resp_vec=[0];
+% Delay_resp_vec=[1]; % 0=the time delay at which the first sample enters the channel
+% Amp_resp_vec=[1];
+% Phase_resp_vec=[0];
 
 
 % Delay_resp_vec=[0 2]; %
 % Amp_resp_vec=[1 0.5];
 % Phase_resp_vec=[0 0];
 
-% Delay_resp_vec=[0 18 ]; %
-% Amp_resp_vec=[1 0.75 ];
-% Phase_resp_vec=[0 pi/4 ];
+Delay_resp_vec=[0 10 ]; %
+Amp_resp_vec=[1 0.5 ];
+Phase_resp_vec=[0 0 ];
 
 %% PHY Configuration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -154,8 +154,8 @@ if ~Ref_Cfg_flag
 
     
     %% Coding
-    Coding_flag=1;
-    %Coding_flag=0
+    %Coding_flag=1;
+    Coding_flag=0
     
     Interleave_flag=1;
     %Interleave_flag=0;
@@ -406,7 +406,7 @@ switch M
     case 16
         if Coding_flag && numel(Delay_resp_vec)==1 % coded & flat channel
            % SNR_vec=[0,4,8,9,10,11,11.75,12.5,13]; %
-            SNR_vec=[0,4,8,10,12,13,14,15,16]; %
+            SNR_vec=[0,4,8,10,11,12,13,13.5]; %
         else
             SNR_vec=[0,4,8,10,12,14,16,18,19,20]; %
         end

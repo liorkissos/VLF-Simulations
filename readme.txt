@@ -1,7 +1,7 @@
-Ver 6.5:
+Ver 6.6:
 
-Transmitter.m: inverse sinc is applied only under Pre emphasis flag. just like the differentiator 
-
+Thesis book is submitted to Nzarathy for the 1st time.
+All code was Tested: SW, HW, MIMO, SISO, PTS
 
 
 

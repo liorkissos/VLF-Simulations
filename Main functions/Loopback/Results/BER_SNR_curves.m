@@ -241,7 +241,7 @@ h_figure=figure(1);
 
 
 
-load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=2. MIMO=1. Prmble enhance=0,0. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=MP.mat')
+load('N_FFT=256. N_CP=25. M_QAM=16. N Prmble long=8. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=MP.mat')
 semilogy(EsNo_vec,BER_vec,'-o')
 grid on
 grid minor
@@ -249,7 +249,7 @@ xlabel('EsNo [dB]')
 ylabel('BER')
 hold on
 
-load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=2. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=MP.mat')
+load('N_FFT=256. N_CP=50. M_QAM=16. N Prmble long=8. MIMO=1. Prmble enhance=3.65,2.8. Coding=0. Code rate=0.46667. Frequency offset=0.  Equalizer=MLChannel=MP.mat')
 semilogy(EsNo_vec,BER_vec,'-o')
 hold on
 
