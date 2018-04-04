@@ -10,23 +10,23 @@ f0=10e3;
 BW=10e3;
 PAPR=12; % of signal
 
-r=6 ;% distance from loop
+r=1 ;% distance from loop
 
 %%% Tx coil
 
 %%% FESP-5135 (large)
-Lcoil=485e-6;
-D=0.5; % loop diameter
-Nwind_coil=20; % Loop # of windings
+% Lcoil=485e-6;
+% D=0.5; % loop diameter
+% Nwind_coil=20; % Loop # of windings
 
 %%% FESP-5133 1330 (Small)
-% Lcoil=6.5e-3;
-% D=0.125; % loop diameter
-% Nwind_coil=225; % Loop # of windings
+Lcoil=6.5e-3;
+D=0.125; % loop diameter
+Nwind_coil=225; % Loop # of windings
 
 
 %%% Transmiting devices
-Gamp=50; % V/V. Maximum is 20 V/V
+Gamp=20; % V/V. Maximum is 20 V/V
 Vin_amp_peak=10; % D/A's output (input to Amplifier)
 
 %%% Rx Sensor
