@@ -11,19 +11,20 @@ mu_0=4*pi*1e-7;
 epsilon_0=8.8e-12;
 
 
-%Z0=377;
 
+
+%Z_air=377
 Z_air=10
 
 %% user defined
 
-%f=5e3;
+f=10e3;
 
-f=5e3:5e3:150e3;
+%f=5e3:5e3:150e3;
 
 %sigma=5.7e7; % copper
 
-sigma=1e-3;
+sigma=10e-3;
 
 epsilon_r=7;
 mu_r=1;
@@ -44,7 +45,7 @@ delta=sqrt(2./(omega*mu*sigma));
 
 Z_medium=sqrt(j*omega*mu./(sigma+j*omega*epsilon));
 
-Relection_dB=db(abs(2*Z_medium./(Z_medium+Z_air)),'voltage');
+Transmission_dB=db(abs(2*Z_medium./(Z_medium+Z_air)),'voltage')
 
 %% Display
 
